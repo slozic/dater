@@ -1,6 +1,7 @@
 package com.slozic.dater.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.slozic.dater.auth.ApplicationUser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -44,12 +45,13 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
     ) {
         String key = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey";
         final String token = Jwts.builder()
-                                 .setSubject(authResult.getName())
+                                 .setSubject(((ApplicationUser)authResult.getPrincipal()).id())
                                  .claim("authorities", authResult.getAuthorities())
                                  .setIssuedAt(new Date())
-                                 .setExpiration(Date.from(new Date().toInstant().plusSeconds(3600)))
+                                 .setExpiration(Date.from(new Date().toInstant().plusSeconds(36000)))
                                  .signWith(Keys.hmacShaKeyFor(key.getBytes()))
                                  .compact();
         response.addHeader("Authorization", "Bearer " + token);
+        response.addHeader("Access-Control-Expose-Headers", "Authorization");
     }
 }

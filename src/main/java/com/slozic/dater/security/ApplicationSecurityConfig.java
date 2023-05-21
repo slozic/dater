@@ -26,15 +26,16 @@ public class ApplicationSecurityConfig {
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
+                .apply(MyCustomAuthFilterDsl.customAuthFilterDsl())
+                .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/index").permitAll()
+                        .requestMatchers("/", "/index", "/users/registration").permitAll()
                         .anyRequest()
                         .authenticated()
-                )
-                .apply(MyCustomAuthFilterDsl.customAuthFilterDsl());
+                );
         return http.build();
     }
 

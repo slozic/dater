@@ -1,7 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slozic.dater.dto.CreateDateEventRequest;
+import com.slozic.dater.dto.request.CreateDateEventRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest
-public class GetDatesControllerTest {
+public class DatesControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,7 +39,7 @@ public class GetDatesControllerTest {
     @Test
     public void createDateEventWorksWithSuccess() throws Exception {
         // given
-        final CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest("id", "location", "description");
+        final CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest("id", "location", "description", "2023-05-05");
         ObjectMapper objectMapper = new ObjectMapper();
         final String requestAsString = objectMapper.writeValueAsString(createDateEventRequest);
         // when

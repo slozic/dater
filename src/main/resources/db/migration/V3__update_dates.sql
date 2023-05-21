@@ -1,0 +1,2 @@
+ALTER TABLE dates ADD COLUMN title varchar(100) NOT NULL;
+ALTER TABLE date_attendees ADD COLUMN time_added TIMESTAMPTZ NOT NULL DEFAULT now();

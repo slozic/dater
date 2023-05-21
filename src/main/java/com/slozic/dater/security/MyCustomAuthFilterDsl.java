@@ -10,11 +10,14 @@ public class MyCustomAuthFilterDsl extends AbstractHttpConfigurer<MyCustomAuthFi
 
     @Override
     public void init(final HttpSecurity http) throws Exception {
-        http.csrf().disable();
+        http
+                .cors()
+                .and()
+                .csrf().disable();
     }
 
     @Override
-    public void configure(final HttpSecurity http) throws Exception {
+    public void configure(final HttpSecurity http) {
         AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
         http.addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager));
         http.addFilterAfter(new JwtTokenVerifier(), JwtUsernamePasswordAuthenticationFilter.class);

@@ -4,6 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class AppConfig {
@@ -13,21 +18,15 @@ public class AppConfig {
         return new BCryptPasswordEncoder(10);
     }
 
-    /*@Bean
-    public DataSource h2DataSource() {
-        return new EmbeddedDatabaseBuilder()
-                .setType(EmbeddedDatabaseType.H2)
-                .addScript(JdbcDaoImpl.DEFAULT_USER_SCHEMA_DDL_LOCATION)
-                .build();
-    }*/
-
-    /*@Bean
-    public DataSource postgresDataSource()
-    {
-        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.url("jdbc:postgresql://localhost:5432/dater");
-        dataSourceBuilder.username("dater");
-        dataSourceBuilder.password("dater");
-        return dataSourceBuilder.build();
-    }*/
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration config = new CorsConfiguration();
+        config.applyPermitDefaultValues();
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowCredentials(true);
+        config.setAllowedMethods(List.of("GET","PUT", "POST"));
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 }

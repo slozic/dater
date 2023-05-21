@@ -6,13 +6,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 public record ApplicationUser(
-        Collection<? extends GrantedAuthority> authorities,
-        String password,
+        String id,
         String username,
+        String password,
+        String email,
         boolean isAccountNonExpired,
         boolean isAccountNonLocked,
         boolean isCredentialsNonExpired,
-        boolean isEnabled
+        boolean isEnabled,
+        Collection<? extends GrantedAuthority> authorities
 )
         implements UserDetails
 {

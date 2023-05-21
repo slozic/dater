@@ -23,13 +23,15 @@ public class DefaultApplicationUserDaoImpl implements ApplicationUserDao{
     private List<ApplicationUser> getApplicationUsers(){
         return List.of(
                 new ApplicationUser(
-                        List.of(),
+                        "",
+                        "slavko",
                         passwordEncoder.encode("password"),
                         "slavko",
                         true,
                         true,
                         true,
-                        true
+                        true,
+                        List.of()
                 )
         );
     }

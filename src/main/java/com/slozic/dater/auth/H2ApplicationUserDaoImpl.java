@@ -30,13 +30,15 @@ public class H2ApplicationUserDaoImpl implements ApplicationUserDao {
         final UserDetails userDetails = jdbcUserDetailsManager.loadUserByUsername(username);
         return List.of(
                 new ApplicationUser(
-                        null,
-                        passwordEncoder.encode(userDetails.getPassword()),
+                        "",
                         userDetails.getUsername(),
+                        passwordEncoder.encode(userDetails.getPassword()),
+                        "",
                         userDetails.isAccountNonExpired(),
                         userDetails.isAccountNonLocked(),
                         userDetails.isCredentialsNonExpired(),
-                        userDetails.isEnabled()
+                        userDetails.isEnabled(),
+                        List.of()
                 )
         );
     }
