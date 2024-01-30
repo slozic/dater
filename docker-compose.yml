@@ -3,9 +3,14 @@ version: "3.8"
 services:
   db:
     image: postgres
+    container_name: postgres-dater
     environment:
       - POSTGRES_USER=dater
       - POSTGRES_DB=dater
       - POSTGRES_PASSWORD=dater
+      - PGDATA=/data/postgres
+    volumes:
+      - ./dater:/data/postgres
     ports:
       - 5432:5432
+    restart: always
