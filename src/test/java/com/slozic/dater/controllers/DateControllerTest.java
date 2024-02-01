@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,7 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest
-public class DatesControllerTest {
+public class DateControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,7 +40,7 @@ public class DatesControllerTest {
     @Test
     public void createDateEventWorksWithSuccess() throws Exception {
         // given
-        final CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest("id", "location", "description", "2023-05-05");
+        final CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest("title", "description", "location", "2023-05-05", new MockMultipartFile("", new byte[]{}));
         ObjectMapper objectMapper = new ObjectMapper();
         final String requestAsString = objectMapper.writeValueAsString(createDateEventRequest);
         // when

@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class JwtAuthenticatedUserService {
 
-    public static UUID getCurrentUserOrThrow() throws UnauthorizedException {
+    public UUID getCurrentUserOrThrow() throws UnauthorizedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             log.error("Authentication object could not be obtained");
