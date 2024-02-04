@@ -48,6 +48,9 @@ public class Date {
     private OffsetDateTime scheduledTime;
 
     @NotNull
+    private OffsetDateTime createdAt;
+
+    @NotNull
     @Column(name = "createdBy")
     private UUID createdBy;
 

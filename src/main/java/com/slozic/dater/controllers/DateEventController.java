@@ -26,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 //@CrossOrigin(origins = "http://localhost:3000", originPatterns = "*", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.GET})
-public class DatesController {
+public class DateEventController {
 
     private final DateService datesService;
 
@@ -35,7 +35,7 @@ public class DatesController {
     @GetMapping
     public List<DateEventDto> getAllDateEvents() throws UnauthorizedException {
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return datesService.getDateEventDtos(currentUser);
+        return datesService.getDateEventDtos(UUID.randomUUID());
     }
 
     @GetMapping("/{id}")

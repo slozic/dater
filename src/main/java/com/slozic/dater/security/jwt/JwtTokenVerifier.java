@@ -1,10 +1,6 @@
 package com.slozic.dater.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
@@ -20,6 +16,12 @@ import java.io.IOException;
 import java.util.List;
 
 public class JwtTokenVerifier extends OncePerRequestFilter {
+    private String secretKey;
+
+    public JwtTokenVerifier(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
     @Override
     protected void doFilterInternal(
             final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain
@@ -32,11 +34,9 @@ public class JwtTokenVerifier extends OncePerRequestFilter {
         }
         try {
             final String token = authorizationHeader.replace("Bearer", "");
-            final String secretKey = "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey";
-
             final JwtParser jwtParser = Jwts.parserBuilder()
-                                            .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
-                                            .build();
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build();
             final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
             final Claims body = claimsJws.getBody();
             final String subject = body.getSubject();

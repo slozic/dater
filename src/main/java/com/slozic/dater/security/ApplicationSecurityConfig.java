@@ -21,12 +21,13 @@ public class ApplicationSecurityConfig {
 
     private final ApplicationUserService applicationUserService;
     private final PasswordEncoder passwordEncoder;
+    private final MyCustomAuthFilterDsl myCustomAuthFilterDsl;
 
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-                .apply(MyCustomAuthFilterDsl.customAuthFilterDsl())
+                .apply(myCustomAuthFilterDsl)
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

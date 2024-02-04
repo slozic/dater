@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DateService {
-
     private static final String DEFAULT_IMAGES_LOCATION = "C:\\Users\\sly-x\\projects\\spring\\dater-images";
     private static final int DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT = 400;
     private static final String DEFAULT_IMAGE_RESIZE_TYPE = "png";
@@ -122,8 +120,8 @@ public class DateService {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         Date date = Date.builder()
                 .title(title)
-                .description(location)
-                .location(description)
+                .description(description)
+                .location(location)
                 .scheduledTime(OffsetDateTime.of(LocalDateTime.parse(scheduledTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneOffset.UTC))
                 .createdBy(currentUser)
                 .build();
