@@ -40,11 +40,10 @@ public class DateService {
     private final DateImageRepository dateImageRepository;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
-    public List<DateEventDto> getDateEventDtos(UUID currentUser) {
+    public List<DateEventDto> getDateEventDtos() {
         final List<Date> dateList = dateRepository.findAll();
 
         return dateList.stream()
-                .filter(date -> !date.getCreatedBy().equals(currentUser))
                 .map(date -> new DateEventDto(
                         date.getId().toString(),
                         date.getTitle(),

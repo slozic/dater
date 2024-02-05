@@ -34,8 +34,7 @@ public class DateEventController {
 
     @GetMapping
     public List<DateEventDto> getAllDateEvents() throws UnauthorizedException {
-        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return datesService.getDateEventDtos(UUID.randomUUID());
+        return datesService.getDateEventDtos();
     }
 
     @GetMapping("/{id}")
