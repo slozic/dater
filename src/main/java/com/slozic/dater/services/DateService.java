@@ -84,7 +84,7 @@ public class DateService {
         return JoinDateStatus.AVAILABLE;
     }
 
-    public UUID createDateEventFromRequest(String title, String location, String description, String scheduledTime, MultipartFile image1) throws DateEventException {
+    public UUID createDateEventFromRequest(String title, String location, String description, String scheduledTime, Optional<MultipartFile> image1) throws DateEventException {
         try {
             final Date dateCreated = createDateEvent(title, location, description, scheduledTime);
             createDefaultDateAttendee(dateCreated);
@@ -96,14 +96,17 @@ public class DateService {
         }
     }
 
-    private void createDateEventImage(MultipartFile image1, Date dateCreated) {
-        File file = storeFile(image1);
-        DateImage dateImage = DateImage.builder()
-                .dateId(dateCreated.getId())
-                .imagePath(file.getPath())
-                .imageSize((int) image1.getSize())
-                .build();
-        dateImageRepository.save(dateImage);
+    private void createDateEventImage(Optional<MultipartFile> image1, Date dateCreated) {
+        if (image1.isPresent()) {
+            MultipartFile multipartFile = image1.get();
+            File file = storeFile(multipartFile);
+            DateImage dateImage = DateImage.builder()
+                    .dateId(dateCreated.getId())
+                    .imagePath(file.getPath())
+                    .imageSize((int) multipartFile.getSize())
+                    .build();
+            dateImageRepository.save(dateImage);
+        }
     }
 
     private DateAttendee createDefaultDateAttendee(Date dateCreated) {
@@ -131,7 +134,7 @@ public class DateService {
 
     private File storeFile(final MultipartFile image) {
         File imageDir = new File(DEFAULT_IMAGES_LOCATION);
-        File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + "" + RandomGenerator.getDefault().nextInt() + DEFAULT_IMAGE_RESIZE_TYPE);
+        File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + RandomGenerator.getDefault().nextInt() + "." + DEFAULT_IMAGE_RESIZE_TYPE);
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(image.getBytes());
         } catch (IOException e) {
@@ -145,7 +148,7 @@ public class DateService {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Thumbnails.of(new ByteArrayInputStream(imageBytes))
                     .size(DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT, DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT)
-                    .outputFormat(DEFAULT_IMAGE_RESIZE_TYPE) // or "png" or any other format you want
+                    .outputFormat(DEFAULT_IMAGE_RESIZE_TYPE)
                     .toOutputStream(outputStream);
 
             return outputStream.toByteArray();
@@ -153,7 +156,7 @@ public class DateService {
     }
 
     public List<MyDateEventDto> getMyDateEventDtos(UUID currentUser) {
-        final List<DateAttendee> dateList = dateRepository.findAllCreatedByUserAndRequestedByUser(currentUser);
+        final List<DateAttendee> dateList = dateAttendeeRepository.findAllCreatedByUserAndRequestedByUser(currentUser);
 
         return dateList.stream()
                 .map(dateAttendee -> new MyDateEventDto(

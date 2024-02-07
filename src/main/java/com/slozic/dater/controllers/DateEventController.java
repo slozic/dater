@@ -16,10 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/dates")
@@ -48,7 +45,7 @@ public class DateEventController {
                                              @RequestParam("location") String location,
                                              @RequestParam("description") String description,
                                              @RequestParam("scheduledTime") String scheduledTime,
-                                             @RequestPart("image1") MultipartFile image1) throws UnauthorizedException {
+                                             @RequestPart("image1") Optional<MultipartFile> image1) throws UnauthorizedException {
         try {
             datesService.createDateEventFromRequest(title, location, description, scheduledTime, image1);
             Map<String, String> response = new HashMap<>();

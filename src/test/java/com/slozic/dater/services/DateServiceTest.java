@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -62,7 +63,7 @@ public class DateServiceTest {
         when(dateImageRepository.save(Mockito.any(DateImage.class))).thenReturn(new DateImage());
 
         // then
-        UUID result = dateService.createDateEventFromRequest(title, location, description, scheduledTime, imageFile);
+        UUID result = dateService.createDateEventFromRequest(title, location, description, scheduledTime, Optional.of(imageFile));
         assertNotNull(result);
     }
 }
