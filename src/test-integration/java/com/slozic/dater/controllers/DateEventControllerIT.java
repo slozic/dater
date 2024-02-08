@@ -31,7 +31,6 @@ public class DateEventControllerIT extends IntegrationTest {
 
     @Autowired
     private DateService dateService;
-
     @Autowired
     private DateRepository dateRepository;
 

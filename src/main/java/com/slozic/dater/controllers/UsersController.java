@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,7 +23,6 @@ public class UsersController {
     }
 
     @PostMapping("/registration")
-    @Transactional
     public ResponseEntity<?> register(@RequestBody final UserRegistrationRequest request) {
         userService.doUserRegistration(request);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully registered!");

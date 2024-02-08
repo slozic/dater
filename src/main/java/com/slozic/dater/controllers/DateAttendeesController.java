@@ -7,7 +7,6 @@ import com.slozic.dater.services.DateAttendeesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,13 +22,12 @@ public class DateAttendeesController {
 
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
-    @GetMapping()
+    @GetMapping
     public List<DateAttendeeDto> getDateAttendees(@PathVariable("id") String dateId) {
         return dateAttendeesService.getDateAttendeeDtos(dateId);
     }
 
-    @PostMapping()
-    @Transactional
+    @PostMapping
     public ResponseEntity<?> addDateAttendee(@PathVariable("id") String dateId) throws UnauthorizedException {
         final UUID currentUserId = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         dateAttendeesService.addAttendeeRequest(dateId, currentUserId);
@@ -37,7 +35,6 @@ public class DateAttendeesController {
     }
 
     @PutMapping("/{userId}")
-    @Transactional
     public ResponseEntity<?> acceptDateAttendee(@PathVariable("id") String dateId, @PathVariable("userId") String userId)
             throws UnauthorizedException {
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();

@@ -15,6 +15,7 @@ import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -40,6 +41,8 @@ public class DateService {
     private final DateImageRepository dateImageRepository;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
+
+    @Transactional(readOnly = true)
     public List<DateEventDto> getDateEventDtos() {
         final List<Date> dateList = dateRepository.findAll();
 
@@ -55,6 +58,7 @@ public class DateService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public DateEventDto getDateEventDto(String dateId) throws UnauthorizedException {
         final Date dateEvent = dateRepository.findById(UUID.fromString(dateId)).orElseGet(Date::new);
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
@@ -84,6 +88,7 @@ public class DateService {
         return JoinDateStatus.AVAILABLE;
     }
 
+    @Transactional
     public UUID createDateEventFromRequest(String title, String location, String description, String scheduledTime, Optional<MultipartFile> image1) throws DateEventException {
         try {
             final Date dateCreated = createDateEvent(title, location, description, scheduledTime);
@@ -155,6 +160,7 @@ public class DateService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<MyDateEventDto> getMyDateEventDtos(UUID currentUser) {
         final List<DateAttendee> dateList = dateAttendeeRepository.findAllCreatedByUserAndRequestedByUser(currentUser);
 

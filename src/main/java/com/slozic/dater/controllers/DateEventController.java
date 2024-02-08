@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,7 +39,6 @@ public class DateEventController {
     }
 
     @PostMapping
-    @Transactional
     public ResponseEntity<?> createDateEvent(@RequestParam("title") String title,
                                              @RequestParam("location") String location,
                                              @RequestParam("description") String description,

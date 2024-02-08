@@ -9,8 +9,10 @@ import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,21 +20,21 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     public UserDto getCurrentAuthenticatedUser() throws UnauthorizedException {
-        final User user = userRepository.findOneById(jwtAuthenticatedUserService.getCurrentUserOrThrow())
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        final User user = userRepository.findOneById(currentUser)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
         return UserDto.from(user);
     }
 
+    @Transactional
     public UserDto doUserRegistration(final UserRegistrationRequest request) {
         final Optional<User> userExists = userRepository.findOneByEmail(request.email());
         if (userExists.isPresent()) {
             throw new IllegalArgumentException("Cannot create user!");
         }
-
         User user = User.fromUserRegistrationRequest(request)
                 .toBuilder()
                 .password(bCryptPasswordEncoder.encode(request.password()))
