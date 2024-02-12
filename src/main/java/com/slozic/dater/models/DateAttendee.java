@@ -1,19 +1,11 @@
 package com.slozic.dater.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.Hibernate;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +17,6 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @IdClass(DateAttendeeId.class)
 public class DateAttendee {
-
     @Id
     private UUID attendeeId;
 
@@ -43,4 +34,21 @@ public class DateAttendee {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dateId", nullable = false, insertable = false, updatable = false)
     private Date date;
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        final DateAttendee dateAttendee = (DateAttendee) o;
+        return Objects.equals(attendeeId, dateAttendee.attendeeId) && Objects.equals(dateId, dateAttendee.dateId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(attendeeId,dateId);
+    }
 }

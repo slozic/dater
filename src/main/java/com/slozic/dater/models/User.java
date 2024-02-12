@@ -1,22 +1,16 @@
 package com.slozic.dater.models;
 
 import com.slozic.dater.dto.request.UserRegistrationRequest;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -51,14 +45,31 @@ public class User {
 
     private boolean enabled;
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        final User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
     public static User fromUserRegistrationRequest(final UserRegistrationRequest request) {
         return User.builder()
-                   .username(request.username())
-                   .firstname(request.firstName())
-                   .lastname(request.lastName())
-                   .email(request.email())
-                   .birthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE))
-                   .enabled(true)
-                   .build();
+                .username(request.username())
+                .firstname(request.firstName())
+                .lastname(request.lastName())
+                .email(request.email())
+                .birthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE))
+                .enabled(true)
+                .build();
     }
 }

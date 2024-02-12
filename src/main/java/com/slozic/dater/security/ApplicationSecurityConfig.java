@@ -10,7 +10,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -27,13 +26,12 @@ public class ApplicationSecurityConfig {
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-                .apply(myCustomAuthFilterDsl)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .with(myCustomAuthFilterDsl, myCustomAuthFilterDsl1 -> {})
+                //.sessionManagement()
+                //.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                //.and()
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/index", "/users/registration").permitAll()
+                        .requestMatchers("/", "/index**", "/users/registration", "/v3/api-docs**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .anyRequest()
                         .authenticated()
                 );

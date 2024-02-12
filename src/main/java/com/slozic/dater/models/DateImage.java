@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.Hibernate;
 
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -37,4 +39,21 @@ public class DateImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dateId", nullable = false, insertable = false, updatable = false)
     private Date date;
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        final DateImage dateImage = (DateImage) o;
+        return Objects.equals(id, dateImage.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
