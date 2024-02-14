@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
 public class DateControllerTest {
@@ -35,7 +36,7 @@ public class DateControllerTest {
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Test
-    public void getAllDatesWorksWithSuccess() throws Exception {
+    public void getAllDates_WorksWithSuccess() throws Exception {
         SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwt = jwt()
                 .authorities(new SimpleGrantedAuthority("SCOPE_dummy:scope"));
         // when
@@ -46,7 +47,7 @@ public class DateControllerTest {
     }
 
     @Test
-    public void getDateByIdWorksWithSuccess() throws Exception {
+    public void getDateById_WorksWithSuccess() throws Exception {
         SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor jwt = jwt()
                 .authorities(new SimpleGrantedAuthority("SCOPE_dummy:scope"));
         // when
@@ -54,6 +55,12 @@ public class DateControllerTest {
 
         // then
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void getDateById_WhenUnauthenticatedThenUnauthorized() throws Exception {
+        this.mockMvc.perform(get("/dates"))
+                .andExpect(status().isUnauthorized());
     }
 
 }

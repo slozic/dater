@@ -1,10 +1,10 @@
 package com.slozic.dater.security;
 
 import com.slozic.dater.auth.ApplicationUserService;
+import jakarta.servlet.DispatcherType;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -21,20 +21,23 @@ public class ApplicationSecurityConfig {
     private final ApplicationUserService applicationUserService;
     private final PasswordEncoder passwordEncoder;
     private final MyCustomAuthFilterDsl myCustomAuthFilterDsl;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
-    @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-                .with(myCustomAuthFilterDsl, myCustomAuthFilterDsl1 -> {})
+                .with(myCustomAuthFilterDsl, myCustomAuthFilterDsl1 -> {
+                })
                 //.sessionManagement()
                 //.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 //.and()
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/", "/index**", "/users/registration", "/v3/api-docs**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest()
                         .authenticated()
-                );
+                )
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint);
         return http.build();
     }
 

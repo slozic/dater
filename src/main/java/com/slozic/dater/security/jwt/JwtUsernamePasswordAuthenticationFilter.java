@@ -2,8 +2,6 @@ package com.slozic.dater.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.auth.ApplicationUser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,17 +13,18 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private String secretKey;
     private AuthenticationManager authenticationManager;
+    private JWTUtils jwtUtils;
 
-    public JwtUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, String secretKey) {
+    public JwtUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
         this.authenticationManager = authenticationManager;
-        this.secretKey = secretKey;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -47,14 +46,17 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
     protected void successfulAuthentication(
             final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain, final Authentication authResult
     ) {
-        final String token = Jwts.builder()
-                .setSubject(((ApplicationUser) authResult.getPrincipal()).id())
-                .claim("authorities", authResult.getAuthorities())
-                .setIssuedAt(new Date())
-                .setExpiration(Date.from(new Date().toInstant().plusSeconds(36000)))
-                .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
-                .compact();
+        String subject = ((ApplicationUser) authResult.getPrincipal()).id();
+        Map<String, Object> claims = getClaims(authResult);
+        String token = jwtUtils.generateToken(claims, subject);
         response.addHeader("Authorization", "Bearer " + token);
         response.addHeader("Access-Control-Expose-Headers", "Authorization");
+    }
+
+    private Map<String, Object> getClaims(Authentication authResult) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("iss", "Dater App");
+        claims.put("authorities", authResult.getAuthorities());
+        return claims;
     }
 }

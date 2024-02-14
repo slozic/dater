@@ -1,6 +1,7 @@
 package com.slozic.dater.security;
 
-import com.slozic.dater.security.jwt.JwtTokenVerifier;
+import com.slozic.dater.security.jwt.JWTUtils;
+import com.slozic.dater.security.jwt.JwtTokenVerifierFilter;
 import com.slozic.dater.security.jwt.JwtUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,11 +22,13 @@ public class MyCustomAuthFilterDsl extends AbstractHttpConfigurer<MyCustomAuthFi
                 .and()
                 .csrf().disable();
     }
+
     @Override
     public void configure(final HttpSecurity http) {
         AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-        http.addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager, secretKey));
-        http.addFilterAfter(new JwtTokenVerifier(secretKey), JwtUsernamePasswordAuthenticationFilter.class);
+        JWTUtils jwtUtils = new JWTUtils(secretKey);
+        http.addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager, jwtUtils));
+        http.addFilterAfter(new JwtTokenVerifierFilter(jwtUtils), JwtUsernamePasswordAuthenticationFilter.class);
     }
 
 }

@@ -26,6 +26,13 @@ springdoc:
   swagger-ui:
     path: "/swagger-ui"
 
+logging:
+  level:
+    #    web: debug
+    org:
+      springframework:
+        security: TRACE
+
 openapi:
   dev-url: http://localhost:8080
   prod-url: https://dater-api.com
