@@ -4,6 +4,9 @@ spring:
   #    username: sa
   #    password: password
   #    driverClassName: org.h2.Driver
+  profiles:
+    active:
+      - local
 
   datasource:
     url: jdbc:postgresql://localhost:5432/dater?socketTimeout=30
@@ -21,6 +24,12 @@ spring:
       file-size-threshold: 2KB
       max-file-size: 10MB
       max-request-size: 10MB
+
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          public-key-location: classpath:my-test-key.pub
 
 springdoc:
   swagger-ui:

@@ -5,6 +5,7 @@ import com.slozic.dater.security.jwt.JwtTokenVerifierFilter;
 import com.slozic.dater.security.jwt.JwtUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,8 @@ public class MyCustomAuthFilterDsl extends AbstractHttpConfigurer<MyCustomAuthFi
     @Override
     public void init(final HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
-                .csrf().disable();
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
     }
 
     @Override
