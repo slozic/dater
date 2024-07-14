@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.Hibernate;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,6 +43,7 @@ public class DateImage {
 
     @Override
     public boolean equals(final Object o) {
+        Iterable<Integer> iterable = new ArrayList<>();
         if (this == o) {
             return true;
         }

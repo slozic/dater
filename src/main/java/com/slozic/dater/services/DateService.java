@@ -13,6 +13,7 @@ import com.slozic.dater.repositories.DateImageRepository;
 import com.slozic.dater.repositories.DateRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DateService {
     private static final String DEFAULT_IMAGES_LOCATION = "C:\\Users\\sly-x\\projects\\spring\\dater-images";
     private static final int DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT = 400;
@@ -89,15 +91,19 @@ public class DateService {
     }
 
     @Transactional
-    public UUID createDateEventFromRequest(String title, String location, String description, String scheduledTime, Optional<MultipartFile> image1) throws DateEventException {
+    public UUID createDateEventFromRequest(String title, String location, String description, String scheduledTime, Optional<MultipartFile> image1) {
         try {
             final Date dateCreated = createDateEvent(title, location, description, scheduledTime);
             createDefaultDateAttendee(dateCreated);
             createDateEventImage(image1, dateCreated);
-
             return dateCreated.getId();
         } catch (Exception e) {
-            throw new DateEventException("Unable to create DateEvent");
+            if (e instanceof UnauthorizedException ue) {
+                throw ue;
+            }
+            String userId = jwtAuthenticatedUserService.getCurrentUserOrThrow().toString();
+            log.error("Failed to create date event for user with id {} and title {}", userId, title);
+            throw new DateEventException(e.getCause());
         }
     }
 
@@ -133,7 +139,6 @@ public class DateService {
                 .createdBy(currentUser)
                 .build();
         final Date dateCreated = dateRepository.save(date);
-
         return dateCreated;
     }
 
@@ -163,6 +168,7 @@ public class DateService {
     @Transactional(readOnly = true)
     public List<MyDateEventDto> getMyDateEventDtos(UUID currentUser) {
         final List<DateAttendee> dateList = dateAttendeeRepository.findAllCreatedByUserAndRequestedByUser(currentUser);
+        dateRepository.findAll();
 
         return dateList.stream()
                 .map(dateAttendee -> new MyDateEventDto(

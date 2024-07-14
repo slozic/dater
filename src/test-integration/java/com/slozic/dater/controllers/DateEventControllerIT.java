@@ -96,4 +96,31 @@ public class DateEventControllerIT extends IntegrationTest {
         assertThat(dateList.get(0).getCreatedBy().toString()).isEqualTo(userId);
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
     }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql"})
+    public void createDateEvent_shouldFailWithNonExistingUser() throws Exception {
+        // given
+        // random non-existing user
+        String userId = "";
+        String token = jwsBuilder.getJwt(userId);
+        var fileBytes = "image content".getBytes();
+        var multipartFile = new MockMultipartFile("image1", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        // when
+        var mvcResult = mockMvc.perform(multipart("/dates")
+                        .file(multipartFile)
+                        .param("title", "title")
+                        .param("description", "description")
+                        .param("location", "location")
+                        .param("scheduledTime", "2024-01-29T20:00")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andReturn();
+
+        // then
+        List<Date> dateList = dateRepository.findAll();
+        assertThat(dateList.size()).isEqualTo(0);
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
 }

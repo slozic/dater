@@ -1,9 +1,17 @@
 package com.slozic.dater.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-@AllArgsConstructor
-public class DateEventException extends Exception {
-    String message;
+public class DateEventException extends BusinessException {
+    public DateEventException(String message) {
+        super(message);
+    }
+
+    public DateEventException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DateEventException(Throwable cause) {
+        super(cause);
+    }
 }

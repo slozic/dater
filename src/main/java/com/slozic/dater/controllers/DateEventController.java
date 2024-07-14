@@ -64,18 +64,11 @@ public class DateEventController {
                                              @RequestParam("location") String location,
                                              @RequestParam("description") String description,
                                              @RequestParam("scheduledTime") String scheduledTime,
-                                             @RequestPart("image1") Optional<MultipartFile> image1) throws UnauthorizedException {
-        try {
-            datesService.createDateEventFromRequest(title, location, description, scheduledTime, image1);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Date event created successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            // Return an error response in case of any exception
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to create date event");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+                                             @RequestPart("image1") Optional<MultipartFile> image1) {
+        datesService.createDateEventFromRequest(title, location, description, scheduledTime, image1);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Date event created successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/date")

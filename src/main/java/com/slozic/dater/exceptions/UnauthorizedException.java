@@ -1,6 +1,6 @@
 package com.slozic.dater.exceptions;
 
-public class UnauthorizedException extends Exception {
+public class UnauthorizedException extends BusinessException {
     public UnauthorizedException() {
         this("Unauthorized access");
     }
