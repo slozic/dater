@@ -1,13 +1,14 @@
 package com.slozic.dater.services;
 
+import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
-import com.slozic.dater.repositories.DateRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,27 +19,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class DateServiceTest {
+public class DateEventServiceTest {
     @Mock
-    private DateRepository dateRepository;
-
+    private DateEventRepository dateEventRepository;
     @Mock
     private DateAttendeeRepository dateAttendeeRepository;
-
     @Mock
     private DateImageRepository dateImageRepository;
-
     @Mock
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
+    @Mock
+    private DateImageService dateImageService;
     @InjectMocks
-    private DateService dateService;
+    private DateEventService dateEventService;
 
     @Test
     public void createDateEventFromRequest_Success() throws UnauthorizedException, DateEventException {
@@ -50,19 +51,19 @@ public class DateServiceTest {
         MockMultipartFile imageFile = new MockMultipartFile("image1", "test.jpg", "image/jpeg", "some image".getBytes());
 
         // when
-        when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(UUID.randomUUID());
+        UUID currentUser = UUID.randomUUID();
 
-        when(dateRepository.save(Mockito.any(Date.class))).thenAnswer(invocation -> {
+        when(dateEventRepository.save(Mockito.any(Date.class))).thenAnswer(invocation -> {
             Date date = invocation.getArgument(0);
-            date.setId(UUID.randomUUID()); // Simulate database behavior
+            date.setId(currentUser); // Simulate database behavior
             return date;
         });
 
         when(dateAttendeeRepository.save(Mockito.any(DateAttendee.class))).thenReturn(new DateAttendee());
-        when(dateImageRepository.save(Mockito.any(DateImage.class))).thenReturn(new DateImage());
 
         // then
-        UUID result = dateService.createDateEventFromRequest(title, location, description, scheduledTime, Optional.of(imageFile));
+        CreateDateEventRequest request = new CreateDateEventRequest(title, location, description, scheduledTime, Optional.of(imageFile), currentUser.toString());
+        UUID result = dateEventService.createDateEventFromRequest(request);
         assertNotNull(result);
     }
 }

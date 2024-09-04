@@ -2,9 +2,12 @@ package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.DateEventDto;
 import com.slozic.dater.dto.MyDateEventDto;
+import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.DateService;
+import com.slozic.dater.services.DateEventService;
+import com.slozic.dater.services.DateImageService;
+import com.slozic.dater.services.MyDateEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -33,13 +37,17 @@ import java.util.*;
 //@CrossOrigin(origins = "http://localhost:3000", originPatterns = "*", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.GET})
 public class DateEventController {
 
-    private final DateService datesService;
+    private final DateEventService dateService;
+
+    private final MyDateEventService myDateEventService;
+
+    private final DateImageService dateImageService;
 
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
     public List<DateEventDto> getAllDateEvents() throws UnauthorizedException {
-        return datesService.getDateEventDtos();
+        return dateService.getDateEventDtos();
     }
 
     @Operation(
@@ -56,7 +64,7 @@ public class DateEventController {
                     content = @Content)})
     @GetMapping("/{id}")
     public DateEventDto getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
-        return datesService.getDateEventDto(dateId);
+        return dateService.getDateEventDto(dateId);
     }
 
     @PostMapping
@@ -64,8 +72,13 @@ public class DateEventController {
                                              @RequestParam("location") String location,
                                              @RequestParam("description") String description,
                                              @RequestParam("scheduledTime") String scheduledTime,
-                                             @RequestPart("image1") Optional<MultipartFile> image1) {
-        datesService.createDateEventFromRequest(title, location, description, scheduledTime, image1);
+                                             @RequestPart("image1") Optional<MultipartFile> image) {
+
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+
+        CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest(title, location, description, scheduledTime, image, currentUser.toString());
+        dateService.createDateEventFromRequest(createDateEventRequest);
+
         Map<String, String> response = new HashMap<>();
         response.put("message", "Date event created successfully");
         return ResponseEntity.ok(response);
@@ -74,12 +87,12 @@ public class DateEventController {
     @GetMapping("/user/date")
     public List<MyDateEventDto> getDatesByCurrentUser() throws UnauthorizedException {
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return datesService.getMyDateEventDtos(currentUser);
+        return myDateEventService.getMyDateEventDtos(currentUser);
     }
 
     @GetMapping("/{id}/image")
     public ResponseEntity<byte[]> getImageByDateId(@PathVariable("id") String dateId, @RequestParam("resize") boolean resize) throws IOException {
-        byte[] imageBytes = datesService.getImageBytes(dateId, resize);
+        byte[] imageBytes = dateImageService.getImageBytes(dateId, resize);
 
         // Set headers
         HttpHeaders headers = new HttpHeaders();

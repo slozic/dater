@@ -2,8 +2,8 @@ package com.slozic.dater.controllers;
 
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateAttendeeRepository;
-import com.slozic.dater.repositories.DateRepository;
-import com.slozic.dater.services.DateService;
+import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.services.DateEventService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
 import org.junit.jupiter.api.Test;
@@ -31,9 +31,9 @@ public class DateEventControllerIT extends IntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private DateService dateService;
+    private DateEventService dateEventService;
     @Autowired
-    private DateRepository dateRepository;
+    private DateEventRepository dateEventRepository;
 
     @Autowired
     private DateAttendeeRepository dateAttendeeRepository;
@@ -91,7 +91,7 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        List<Date> dateList = dateRepository.findAll();
+        List<Date> dateList = dateEventRepository.findAll();
         assertThat(dateList.size()).isEqualTo(1);
         assertThat(dateList.get(0).getCreatedBy().toString()).isEqualTo(userId);
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
@@ -119,7 +119,7 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        List<Date> dateList = dateRepository.findAll();
+        List<Date> dateList = dateEventRepository.findAll();
         assertThat(dateList.size()).isEqualTo(0);
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }

@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-public interface DateRepository extends JpaRepository<Date, UUID> {
+public interface DateEventRepository extends JpaRepository<Date, UUID> {
 
 }

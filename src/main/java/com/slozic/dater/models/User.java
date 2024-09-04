@@ -70,6 +70,7 @@ public class User {
                 .email(request.email())
                 .birthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE))
                 .enabled(true)
+                .createdAt(OffsetDateTime.now())
                 .build();
     }
 }

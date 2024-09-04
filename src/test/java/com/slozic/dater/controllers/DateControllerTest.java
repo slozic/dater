@@ -1,9 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.DateAttendeesService;
-import com.slozic.dater.services.DateService;
-import com.slozic.dater.services.UserService;
+import com.slozic.dater.services.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,7 +25,13 @@ public class DateControllerTest {
     private DateAttendeesService dateAttendeesService;
 
     @MockBean
-    private DateService dateService;
+    private DateEventService dateEventService;
+
+    @MockBean
+    private MyDateEventService myDateEventService;
+
+    @MockBean
+    private DateImageService dateImageService;
 
     @MockBean
     private UserService userService;
