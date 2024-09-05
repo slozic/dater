@@ -18,5 +18,5 @@ public interface DateAttendeeRepository extends JpaRepository<DateAttendee, Date
             " left join fetch da.user u " +
             " left join fetch da.date d " +
             " where da.attendeeId = :id ")
-    List<DateAttendee> findAllCreatedByUserAndRequestedByUser(UUID id);
+    List<DateAttendee> findAllCreatedBySpecificUser(UUID id);
 }

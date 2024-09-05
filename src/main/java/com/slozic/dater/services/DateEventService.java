@@ -1,15 +1,10 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateEventDto;
-import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
-import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
-import com.slozic.dater.models.DateAttendee;
-import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
-import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +15,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,9 +23,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DateEventService {
     private final DateEventRepository dateEventRepository;
-    private final DateAttendeeRepository dateAttendeeRepository;
-    private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
-    private final DateImageService dateImageService;
+    private final DateAttendeesService dateAttendeesService;
+
+    private final LocalImageStorageService localImageStorageService;
+
+    private final DateImageDBService dateImageDBService;
 
     @Transactional(readOnly = true)
     public List<DateEventDto> getDateEventDtos() {
@@ -43,7 +39,8 @@ public class DateEventService {
                         date.getTitle(),
                         date.getLocation(),
                         date.getDescription(),
-                        date.getUser().getUsername(), "",
+                        date.getUser().getUsername(),
+                        "",
                         date.getScheduledTime().toString(),
                         ""))
                 .collect(Collectors.toList());
@@ -52,70 +49,35 @@ public class DateEventService {
     @Transactional(readOnly = true)
     public DateEventDto getDateEventDto(String dateId) throws UnauthorizedException {
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseGet(Date::new);
-        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        final Optional<DateAttendee> optionalDateAttendee = dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUser, UUID.fromString(dateId));
-
-        return List.of(dateEvent).stream()
-                .map(date -> new DateEventDto(
-                        date.getId().toString(),
-                        date.getTitle(),
-                        date.getLocation(),
-                        date.getDescription(),
-                        date.getUser().getUsername(),
-                        "",
-                        date.getScheduledTime().toString(),
-                        getJoinDateStatus(optionalDateAttendee).toString()
-
-                ))
-                .collect(Collectors.toList()).stream().findFirst().get();
-    }
-
-    private JoinDateStatus getJoinDateStatus(final Optional<DateAttendee> optionalDateAttendee) {
-        if (optionalDateAttendee.isPresent()) {
-            if (optionalDateAttendee.get().getAccepted())
-                return JoinDateStatus.ACCEPTED;
-            else
-                return JoinDateStatus.PENDING;
-        }
-        return JoinDateStatus.AVAILABLE;
+        return new DateEventDto(
+                dateEvent.getId().toString(),
+                dateEvent.getTitle(),
+                dateEvent.getLocation(),
+                dateEvent.getDescription(),
+                dateEvent.getUser().getUsername(),
+                "",
+                dateEvent.getScheduledTime().toString(),
+                "");
     }
 
     @Transactional
-    public UUID createDateEventFromRequest(final CreateDateEventRequest request) {
-        try {
-            final Date dateCreated = createDateEvent(request);
-            createDefaultDateAttendee(dateCreated);
-            dateImageService.createDateEventImage(request.image(), dateCreated);
-            return dateCreated.getId();
-        } catch (Exception e) {
-            if (e instanceof UnauthorizedException ue) {
-                throw ue;
-            }
-            String userId = jwtAuthenticatedUserService.getCurrentUserOrThrow().toString();
-            log.error("Failed to create date event for user with id {} and title {}", userId, request.title());
-            throw new DateEventException(e.getCause());
-        }
+    public UUID createDateEvent(final CreateDateEventRequest request, String userId) {
+        final Date dateCreated = saveDateEvent(request, userId);
+        dateAttendeesService.createDefaultDateAttendee(dateCreated);
+        return dateCreated.getId();
     }
 
-    private Date createDateEvent(final CreateDateEventRequest request) throws UnauthorizedException {
+    private Date saveDateEvent(final CreateDateEventRequest request, String userId) {
         Date date = Date.builder()
                 .title(request.title())
                 .description(request.description())
                 .location(request.location())
                 .scheduledTime(OffsetDateTime.of(LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneOffset.UTC))
-                .createdBy(UUID.fromString(request.dateCreator()))
+                .createdBy(UUID.fromString(userId))
                 .build();
         final Date dateCreated = dateEventRepository.save(date);
         return dateCreated;
     }
 
-    private DateAttendee createDefaultDateAttendee(Date dateCreated) {
-        DateAttendee dateAttendee = DateAttendee.builder()
-                .dateId(dateCreated.getId())
-                .attendeeId(dateCreated.getCreatedBy())
-                .accepted(true)
-                .build();
-        return dateAttendeeRepository.save(dateAttendee);
-    }
 
 }

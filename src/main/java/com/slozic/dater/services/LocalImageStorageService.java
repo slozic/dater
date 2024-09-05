@@ -1,6 +1,5 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateImageRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,7 @@ import java.util.random.RandomGenerator;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DateImageService implements ImageService {
+public class LocalImageStorageService implements ImageStorageService {
 
     private static final String DEFAULT_IMAGES_LOCATION = "C:\\Users\\sly-x\\projects\\spring\\dater-images";
     private static final int DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT = 400;
@@ -28,29 +27,19 @@ public class DateImageService implements ImageService {
     private final DateImageRepository dateImageRepository;
 
     @Override
-    public void prepareImage() {
-
-    }
-
-    @Override
-    public void storeImage() {
-
-    }
-
-    public void createDateEventImage(Optional<MultipartFile> image, Date dateCreated) {
+    public void storeImage(Optional<MultipartFile> image) {
         if (image.isPresent()) {
-            MultipartFile multipartFile = image.get();
-            File file = storeFile(multipartFile);
-            DateImage dateImage = DateImage.builder()
-                    .dateId(dateCreated.getId())
-                    .imagePath(file.getPath())
-                    .imageSize((int) multipartFile.getSize())
-                    .build();
-            dateImageRepository.save(dateImage);
+            storeDateEventImage(image.get());
         }
     }
 
-    private File storeFile(final MultipartFile image) {
+    private String storeDateEventImage(MultipartFile image) {
+        MultipartFile multipartFile = image;
+        File file = storeImageAsFile(multipartFile);
+        return file.getPath();
+    }
+
+    private File storeImageAsFile(final MultipartFile image) {
         File imageDir = new File(DEFAULT_IMAGES_LOCATION);
         File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + RandomGenerator.getDefault().nextInt() + "." + DEFAULT_IMAGE_RESIZE_TYPE);
         try (OutputStream os = new FileOutputStream(file)) {
@@ -59,6 +48,16 @@ public class DateImageService implements ImageService {
             throw new RuntimeException(e);
         }
         return file;
+    }
+
+    @Override
+    public void loadImage(String imagePath) {
+        File file = new File(imagePath);
+        try {
+            byte[] imageBytes = Files.readAllBytes(file.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private byte[] resizeImage(byte[] imageBytes) throws IOException {
@@ -85,5 +84,4 @@ public class DateImageService implements ImageService {
         }
         return imageBytes;
     }
-
 }

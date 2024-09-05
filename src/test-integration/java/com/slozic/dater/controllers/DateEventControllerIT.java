@@ -1,18 +1,20 @@
 package com.slozic.dater.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.services.DateEventService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,6 +39,8 @@ public class DateEventControllerIT extends IntegrationTest {
 
     @Autowired
     private DateAttendeeRepository dateAttendeeRepository;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
@@ -77,16 +81,15 @@ public class DateEventControllerIT extends IntegrationTest {
         // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
-        var fileBytes = "image content".getBytes();
-        var multipartFile = new MockMultipartFile("image1", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        /*var fileBytes = "image content".getBytes();
+        var multipartFile = new MockMultipartFile("image1", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);*/
+
+        final CreateDateEventRequest createDateEventRequest = getCreateDateEventRequest();
 
         // when
         var mvcResult = mockMvc.perform(multipart("/dates")
-                        .file(multipartFile)
-                        .param("title", "title")
-                        .param("description", "description")
-                        .param("location", "location")
-                        .param("scheduledTime", "2024-01-29T20:00")
+                        .content(objectMapper.writeValueAsString(createDateEventRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andReturn();
 
@@ -105,16 +108,13 @@ public class DateEventControllerIT extends IntegrationTest {
         // random non-existing user
         String userId = "";
         String token = jwsBuilder.getJwt(userId);
-        var fileBytes = "image content".getBytes();
-        var multipartFile = new MockMultipartFile("image1", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        final CreateDateEventRequest createDateEventRequest = getCreateDateEventRequest();
 
         // when
         var mvcResult = mockMvc.perform(multipart("/dates")
-                        .file(multipartFile)
-                        .param("title", "title")
-                        .param("description", "description")
-                        .param("location", "location")
-                        .param("scheduledTime", "2024-01-29T20:00")
+                        .content(objectMapper.writeValueAsString(createDateEventRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andReturn();
 
@@ -122,5 +122,15 @@ public class DateEventControllerIT extends IntegrationTest {
         List<Date> dateList = dateEventRepository.findAll();
         assertThat(dateList.size()).isEqualTo(0);
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @NotNull
+    private static CreateDateEventRequest getCreateDateEventRequest() {
+        final CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest(
+                "title",
+                "description",
+                "location",
+                "2024-01-29T20:00");
+        return createDateEventRequest;
     }
 }

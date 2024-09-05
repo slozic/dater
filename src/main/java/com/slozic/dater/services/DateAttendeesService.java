@@ -1,6 +1,7 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateAttendeeDto;
+import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,15 @@ public class DateAttendeesService {
                 //.filter(attendee -> !attendee.getAttendeeId().equals(attendee.getDate().getCreatedBy()))
                 .map(dateAttendee -> DateAttendeeDto.from(dateAttendee))
                 .collect(Collectors.toList());
+    }
+
+    public DateAttendee createDefaultDateAttendee(Date dateCreated) {
+        DateAttendee dateAttendee = DateAttendee.builder()
+                .dateId(dateCreated.getId())
+                .attendeeId(dateCreated.getCreatedBy())
+                .accepted(true)
+                .build();
+        return dateAttendeeRepository.save(dateAttendee);
     }
 
     @Transactional
@@ -56,4 +66,7 @@ public class DateAttendeesService {
                 });
     }
 
+    public Optional<DateAttendee> findOneByAttendeeIdAndDateId(UUID currentUser, UUID dateId) {
+        return dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUser, dateId);
+    }
 }

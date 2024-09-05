@@ -6,7 +6,7 @@ import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.DateEventService;
-import com.slozic.dater.services.DateImageService;
+import com.slozic.dater.services.LocalImageStorageService;
 import com.slozic.dater.services.MyDateEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -23,10 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/dates")
@@ -38,11 +39,8 @@ import java.util.*;
 public class DateEventController {
 
     private final DateEventService dateService;
-
     private final MyDateEventService myDateEventService;
-
-    private final DateImageService dateImageService;
-
+    private final LocalImageStorageService dateImageService;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
@@ -64,20 +62,15 @@ public class DateEventController {
                     content = @Content)})
     @GetMapping("/{id}")
     public DateEventDto getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         return dateService.getDateEventDto(dateId);
     }
 
     @PostMapping
-    public ResponseEntity<?> createDateEvent(@RequestParam("title") String title,
-                                             @RequestParam("location") String location,
-                                             @RequestParam("description") String description,
-                                             @RequestParam("scheduledTime") String scheduledTime,
-                                             @RequestPart("image1") Optional<MultipartFile> image) {
+    public ResponseEntity<?> createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
 
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-
-        CreateDateEventRequest createDateEventRequest = new CreateDateEventRequest(title, location, description, scheduledTime, image, currentUser.toString());
-        dateService.createDateEventFromRequest(createDateEventRequest);
+        dateService.createDateEvent(dateEventRequest, currentUser.toString());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Date event created successfully");

@@ -5,7 +5,6 @@ import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
-import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
@@ -19,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,9 +33,10 @@ public class DateEventServiceTest {
     private DateImageRepository dateImageRepository;
     @Mock
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
-
     @Mock
-    private DateImageService dateImageService;
+    private LocalImageStorageService dateImageService;
+    @Mock
+    private DateAttendeesService dateAttendeesService;
     @InjectMocks
     private DateEventService dateEventService;
 
@@ -59,11 +58,11 @@ public class DateEventServiceTest {
             return date;
         });
 
-        when(dateAttendeeRepository.save(Mockito.any(DateAttendee.class))).thenReturn(new DateAttendee());
+        when(dateAttendeesService.createDefaultDateAttendee(Mockito.any(Date.class))).thenReturn(new DateAttendee());
 
         // then
-        CreateDateEventRequest request = new CreateDateEventRequest(title, location, description, scheduledTime, Optional.of(imageFile), currentUser.toString());
-        UUID result = dateEventService.createDateEventFromRequest(request);
+        CreateDateEventRequest request = new CreateDateEventRequest(title, location, description, scheduledTime);
+        UUID result = dateEventService.createDateEvent(request, currentUser.toString());
         assertNotNull(result);
     }
 }

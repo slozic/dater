@@ -31,7 +31,7 @@ public class DateControllerTest {
     private MyDateEventService myDateEventService;
 
     @MockBean
-    private DateImageService dateImageService;
+    private LocalImageStorageService dateImageService;
 
     @MockBean
     private UserService userService;

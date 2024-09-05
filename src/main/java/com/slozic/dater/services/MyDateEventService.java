@@ -1,8 +1,8 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.MyDateEventDto;
-import com.slozic.dater.models.DateAttendee;
-import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.models.Date;
+import com.slozic.dater.repositories.DateEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,22 +16,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class MyDateEventService {
-    private final DateAttendeeRepository dateAttendeeRepository;
+
+    private final DateEventRepository dateEventRepository;
 
     @Transactional(readOnly = true)
     public List<MyDateEventDto> getMyDateEventDtos(UUID currentUser) {
-        final List<DateAttendee> dateList = dateAttendeeRepository.findAllCreatedByUserAndRequestedByUser(currentUser);
-        //dateEventRepository.findAll();
-
-        return dateList.stream()
-                .map(dateAttendee -> new MyDateEventDto(
-                        dateAttendee.getDateId().toString(),
-                        dateAttendee.getDate().getTitle(),
-                        dateAttendee.getDate().getLocation(),
-                        dateAttendee.getDate().getDescription(),
-                        dateAttendee.getUser().getUsername(), "",
-                        dateAttendee.getDate().getScheduledTime().toString(),
-                        dateAttendee.getDate().getCreatedBy().equals(currentUser)))
-                .collect(Collectors.toList());
+        List<Date> myDateList = dateEventRepository.findAllByCreatedBy(currentUser);
+        return myDateList.stream().map(date -> new MyDateEventDto(
+                        date.getId().toString(),
+                        date.getTitle(),
+                        date.getLocation(),
+                        date.getDescription(),
+                        "",
+                        date.getScheduledTime().toString(),
+                        "", true)).
+                collect(Collectors.toList());
     }
 }
