@@ -15,26 +15,17 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
+@WebMvcTest(controllers = DateEventController.class)
 public class DateControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private DateAttendeesService dateAttendeesService;
-
-    @MockBean
     private DateEventService dateEventService;
 
     @MockBean
     private MyDateEventService myDateEventService;
-
-    @MockBean
-    private LocalImageStorageService dateImageService;
-
-    @MockBean
-    private UserService userService;
 
     @MockBean
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;

@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class MyDateEventService {
-
     private final DateEventRepository dateEventRepository;
 
     @Transactional(readOnly = true)

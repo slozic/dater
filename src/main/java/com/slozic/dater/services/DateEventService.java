@@ -25,10 +25,6 @@ public class DateEventService {
     private final DateEventRepository dateEventRepository;
     private final DateAttendeesService dateAttendeesService;
 
-    private final LocalImageStorageService localImageStorageService;
-
-    private final DateImageDBService dateImageDBService;
-
     @Transactional(readOnly = true)
     public List<DateEventDto> getDateEventDtos() {
         final List<Date> dateList = dateEventRepository.findAll();

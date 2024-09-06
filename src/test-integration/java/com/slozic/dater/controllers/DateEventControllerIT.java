@@ -21,8 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @Import(JwsBuilder.class)
 public class DateEventControllerIT extends IntegrationTest {
@@ -87,7 +86,7 @@ public class DateEventControllerIT extends IntegrationTest {
         final CreateDateEventRequest createDateEventRequest = getCreateDateEventRequest();
 
         // when
-        var mvcResult = mockMvc.perform(multipart("/dates")
+        var mvcResult = mockMvc.perform(post("/dates")
                         .content(objectMapper.writeValueAsString(createDateEventRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -112,7 +111,7 @@ public class DateEventControllerIT extends IntegrationTest {
         final CreateDateEventRequest createDateEventRequest = getCreateDateEventRequest();
 
         // when
-        var mvcResult = mockMvc.perform(multipart("/dates")
+        var mvcResult = mockMvc.perform(post("/dates")
                         .content(objectMapper.writeValueAsString(createDateEventRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
