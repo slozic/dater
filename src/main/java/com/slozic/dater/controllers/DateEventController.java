@@ -1,12 +1,10 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.DateEventDto;
-import com.slozic.dater.dto.MyDateEventDto;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.DateEventService;
-import com.slozic.dater.services.MyDateEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,7 +31,6 @@ import java.util.UUID;
 //@CrossOrigin(origins = "http://localhost:3000", originPatterns = "*", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.GET})
 public class DateEventController {
     private final DateEventService dateEventService;
-    private final MyDateEventService myDateEventService;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
@@ -68,12 +65,6 @@ public class DateEventController {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Date event created successfully");
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/user/date")
-    public List<MyDateEventDto> getDatesByCurrentUser() throws UnauthorizedException {
-        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return myDateEventService.getMyDateEventDtos(currentUser);
     }
 
 }

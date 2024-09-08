@@ -18,7 +18,7 @@ public class LocalImageStorageService implements ImageStorageService {
 
     private static final String DEFAULT_IMAGES_LOCATION = "C:\\Users\\sly-x\\projects\\spring\\dater-images";
     private static final int DEFAULT_IMAGE_RESIZE_WIDTH_HEIGHT = 400;
-    private static final String DEFAULT_IMAGE_RESIZE_TYPE = "png";
+    private static final String DEFAULT_IMAGE_RESIZE_TYPE = "jpg";
 
     @Override
     public String storeImage(final MultipartFile image) {
@@ -47,14 +47,13 @@ public class LocalImageStorageService implements ImageStorageService {
 
     private byte[] getImageBytes(String imagePath, boolean shouldResize) {
         File file = new File(imagePath);
-        byte[] imageBytes = new byte[0];
+        byte[] imageBytes;
 
         try {
             imageBytes = Files.readAllBytes(file.toPath());
         } catch (IOException e) {
             throw new FileStorageException("Could not load image " + imagePath + ". Please try again!", e);
         }
-
         if (shouldResize) {
             imageBytes = resizeImage(imageBytes, imagePath);
         }

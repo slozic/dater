@@ -1,6 +1,7 @@
 package com.slozic.dater.exceptions.handlers;
 
 import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.DateImageException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -32,18 +33,24 @@ public class ExceptionHandlerAdvice {
                 .body(ErrorResponse.builder()
                         .title("Unauthorised access to API!")
                         .detail("Please login to authenticate and/or contact our customer support if problem persists!")
-                        .status(HttpStatus.UNAUTHORIZED.value())
                         .build());
     }
 
     @ExceptionHandler(DateEventException.class)
     ResponseEntity<ErrorResponse> handleErrorOnDateEventCreation(final DateEventException ex) {
-        log.debug("Access denied", ex);
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY.ordinal())
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.builder()
                         .title("Date event creation failed!")
-                        .detail("Please try again and contact our customer support service if problem persists")
-                        .status(HttpStatus.UNPROCESSABLE_ENTITY.ordinal())
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(DateImageException.class)
+    ResponseEntity<ErrorResponse> handleErrorOnDateEventImageCreation(final DateImageException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ErrorResponse.builder()
+                        .title("Date event image creation failed!")
+                        .detail(ex.getMessage())
                         .build());
     }
 }
