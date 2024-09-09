@@ -1,8 +1,8 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.DateImageData;
+import com.slozic.dater.dto.response.DateImageData;
 import com.slozic.dater.dto.DateImageDto;
-import com.slozic.dater.dto.DateImageResponse;
+import com.slozic.dater.dto.response.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
 import com.slozic.dater.models.Date;
@@ -11,7 +11,6 @@ import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,17 +34,10 @@ public class DateEventImageService {
     public void createDateEventImages(final String dateId, final List<MultipartFile> images) {
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
         validateInput(dateId, images, optionalDate);
-
-        for (MultipartFile file : images) {
-            if (!file.isEmpty()) {
-                String imagePath = imageStorageService.storeImage(file);
-                DateImageDto dateImageDto = new DateImageDto(dateId, imagePath, file.getSize());
-                saveImageAsEntity(dateImageDto);
-            }
-        }
+        storeImagesAndSaveMetaDataEntity(dateId, images);
     }
 
-    private static void validateInput(String dateId, List<MultipartFile> images, Optional<Date> optionalDate) {
+    private void validateInput(String dateId, List<MultipartFile> images, Optional<Date> optionalDate) {
         if (optionalDate.isEmpty()) {
             throw new DateEventException("No DateEvents found with id: " + dateId);
         }
@@ -55,17 +47,27 @@ public class DateEventImageService {
         }
 
         if (images.size() > MAX_IMAGES_PER_DATE) {
-            throw new DateImageException("You can have only up to "+ MAX_IMAGES_PER_DATE +" images per date event!");
+            throw new DateImageException("You can have only up to " + MAX_IMAGES_PER_DATE + " images per date event!");
         }
 
-        for(MultipartFile image : images){
-            if(!image.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !image.getContentType().equals(MediaType.IMAGE_PNG_VALUE)){
+        for (MultipartFile image : images) {
+            if (!image.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !image.getContentType().equals(MediaType.IMAGE_PNG_VALUE)) {
                 throw new DateImageException("Unsupported file type " + image.getContentType());
             }
         }
     }
 
-    private void saveImageAsEntity(final DateImageDto dateImageDto) {
+    private void storeImagesAndSaveMetaDataEntity(String dateId, List<MultipartFile> images) {
+        for (MultipartFile file : images) {
+            if (!file.isEmpty()) {
+                String imagePath = imageStorageService.storeImage(file);
+                DateImageDto dateImageDto = new DateImageDto(dateId, imagePath, file.getSize());
+                saveImageEntityToDb(dateImageDto);
+            }
+        }
+    }
+
+    private void saveImageEntityToDb(final DateImageDto dateImageDto) {
         DateImage dateImage = DateImage.builder()
                 .dateId(UUID.fromString(dateImageDto.dateId()))
                 .imagePath(dateImageDto.imagePath())

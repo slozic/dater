@@ -1,7 +1,8 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.DateEventDto;
+import com.slozic.dater.dto.response.DateEventData;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.response.DateEventResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateEventRepository;
@@ -16,6 +17,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,34 +28,34 @@ public class DateEventService {
     private final DateAttendeesService dateAttendeesService;
 
     @Transactional(readOnly = true)
-    public List<DateEventDto> getDateEventDtos() {
+    public DateEventResponse getDateEvents() {
         final List<Date> dateList = dateEventRepository.findAll();
+        return mapToResponse(dateList);
+    }
 
-        return dateList.stream()
-                .map(date -> new DateEventDto(
-                        date.getId().toString(),
-                        date.getTitle(),
-                        date.getLocation(),
-                        date.getDescription(),
-                        date.getUser().getUsername(),
-                        "",
-                        date.getScheduledTime().toString(),
-                        ""))
+    private DateEventResponse mapToResponse(List<Date> dateList) {
+        List<DateEventData> dateEventList = dateList.stream()
+                .map(mapEntityToDto())
                 .collect(Collectors.toList());
+        return new DateEventResponse(dateEventList);
+    }
+
+    private Function<Date, DateEventData> mapEntityToDto() {
+        return date -> new DateEventData(
+                date.getId().toString(),
+                date.getTitle(),
+                date.getLocation(),
+                date.getDescription(),
+                date.getUser().getUsername(),
+                "",
+                date.getScheduledTime().toString(),
+                "");
     }
 
     @Transactional(readOnly = true)
-    public DateEventDto getDateEventDto(String dateId) throws UnauthorizedException {
+    public DateEventData getDateEventDto(String dateId) throws UnauthorizedException {
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseGet(Date::new);
-        return new DateEventDto(
-                dateEvent.getId().toString(),
-                dateEvent.getTitle(),
-                dateEvent.getLocation(),
-                dateEvent.getDescription(),
-                dateEvent.getUser().getUsername(),
-                "",
-                dateEvent.getScheduledTime().toString(),
-                "");
+        return mapEntityToDto().apply(dateEvent);
     }
 
     @Transactional

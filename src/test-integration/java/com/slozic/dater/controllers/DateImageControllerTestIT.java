@@ -1,7 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slozic.dater.dto.DateImageResponse;
+import com.slozic.dater.dto.response.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
 import com.slozic.dater.models.DateImage;

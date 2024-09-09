@@ -58,7 +58,7 @@ public class DateEventControllerIT extends IntegrationTest {
 
         // then
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
-        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("[{\"id\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\",\"title\":\"Date in the Alps\",\"location\":\"Alps\",\"description\":\"Perfect afternoon date in the alps\",\"dateOwner\":\"clara\",\"dateJoiner\":\"\",\"scheduledTime\":\"2024-01-29T20:00Z\",\"joinStatus\":\"\"},{\"id\":\"c7404d30-1edf-4334-97b8-b03c668b70b9\",\"title\":\"Morning run by the lake\",\"location\":\"Lake\",\"description\":\"Lets have a morning run by the lake and then nice smoothie bowl for breakfast!\",\"dateOwner\":\"tom.h\",\"dateJoiner\":\"\",\"scheduledTime\":\"2024-02-02T22:00Z\",\"joinStatus\":\"\"}]");
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"dateEventData\":[{\"id\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\",\"title\":\"Date in the Alps\",\"location\":\"Alps\",\"description\":\"Perfect afternoon date in the alps\",\"dateOwner\":\"clara\",\"dateJoiner\":\"\",\"scheduledTime\":\"2024-01-29T20:00Z\",\"joinStatus\":\"\"},{\"id\":\"c7404d30-1edf-4334-97b8-b03c668b70b9\",\"title\":\"Morning run by the lake\",\"location\":\"Lake\",\"description\":\"Lets have a morning run by the lake and then nice smoothie bowl for breakfast!\",\"dateOwner\":\"tom.h\",\"dateJoiner\":\"\",\"scheduledTime\":\"2024-02-02T22:00Z\",\"joinStatus\":\"\"}]}");
     }
 
     @Test

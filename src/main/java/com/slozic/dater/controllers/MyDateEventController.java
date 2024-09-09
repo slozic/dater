@@ -1,6 +1,6 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.MyDateEventDto;
+import com.slozic.dater.dto.response.DateEventResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.MyDateEventService;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,7 +25,7 @@ public class MyDateEventController {
     private final MyDateEventService myDateEventService;
 
     @GetMapping
-    public List<MyDateEventDto> getDatesByCurrentlyLoggedUser() throws UnauthorizedException {
+    public DateEventResponse getDatesByCurrentlyLoggedUser() throws UnauthorizedException {
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         return myDateEventService.getMyDateEventDtos(currentUser);
     }

@@ -1,7 +1,8 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.DateEventDto;
+import com.slozic.dater.dto.response.DateEventData;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.response.DateEventResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.DateEventService;
@@ -17,9 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -34,8 +32,8 @@ public class DateEventController {
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
-    public List<DateEventDto> getAllDateEvents() throws UnauthorizedException {
-        return dateEventService.getDateEventDtos();
+    public DateEventResponse getAllDateEvents() throws UnauthorizedException {
+        return dateEventService.getDateEvents();
     }
 
     @Operation(
@@ -45,26 +43,22 @@ public class DateEventController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved DateEvent",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = DateEventDto.class))}),
+                            schema = @Schema(implementation = DateEventData.class))}),
             @ApiResponse(responseCode = "400", description = "Invalid id given",
                     content = @Content),
             @ApiResponse(responseCode = "404", description = "DateEvent not found!",
                     content = @Content)})
     @GetMapping("/{id}")
-    public DateEventDto getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
+    public DateEventData getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         return dateEventService.getDateEventDto(dateId);
     }
 
     @PostMapping
     public ResponseEntity<?> createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
-
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        dateEventService.createDateEvent(dateEventRequest, currentUser.toString());
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Date event created successfully");
-        return ResponseEntity.ok(response);
+        UUID dateId = dateEventService.createDateEvent(dateEventRequest, currentUser.toString());
+        return ResponseEntity.ok(dateId);
     }
 
 }

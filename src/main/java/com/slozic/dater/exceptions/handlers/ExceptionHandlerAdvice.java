@@ -2,6 +2,7 @@ package com.slozic.dater.exceptions.handlers;
 
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
+import com.slozic.dater.exceptions.FileStorageException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,15 @@ public class ExceptionHandlerAdvice {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.builder()
                         .title("Date event image creation failed!")
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    ResponseEntity<ErrorResponse> handleErrorOnDateEventImageCreation(final FileStorageException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ErrorResponse.builder()
+                        .title("Error occurred while storing the image file.")
                         .detail(ex.getMessage())
                         .build());
     }

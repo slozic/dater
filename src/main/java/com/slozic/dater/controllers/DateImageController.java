@@ -1,6 +1,6 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.DateImageResponse;
+import com.slozic.dater.dto.response.DateImageResponse;
 import com.slozic.dater.services.DateEventImageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
