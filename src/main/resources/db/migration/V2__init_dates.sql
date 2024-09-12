@@ -1,8 +1,8 @@
 CREATE TABLE dates
 (
     id      UUID PRIMARY KEY    DEFAULT uuid_generate_v4(),
-    description    VARCHAR(250) NOT NULL,
-    location    VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    location    VARCHAR(250) NOT NULL,
     enabled     BOOLEAN NOT NULL DEFAULT false,
     scheduled_time  TIMESTAMPTZ NOT NULL,
     created_by  UUID REFERENCES users (id) ON DELETE CASCADE NOT NULL,

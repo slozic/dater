@@ -1,5 +1,6 @@
 package com.slozic.dater.services;
 
+import com.slozic.dater.exceptions.AttendeeNotFoundException;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class DateAttendeeServiceTest {
         when(dateAttendeeRepository.findOneByAttendeeIdAndDateId(userId, dateId)).thenReturn(Optional.empty());
 
         // when
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(AttendeeNotFoundException.class,
                 () -> dateAttendeesService.acceptAttendeeRequest(
                         dateId.toString(), userId.toString(), currentUser)
         );

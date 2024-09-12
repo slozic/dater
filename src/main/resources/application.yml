@@ -18,6 +18,9 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  mvc:
+    static-path-pattern: "/static/**"  # only serve static resources from /static
+
 springdoc:
   swagger-ui:
     path: "/swagger-ui"

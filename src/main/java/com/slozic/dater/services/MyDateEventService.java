@@ -1,7 +1,7 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.response.DateEventData;
-import com.slozic.dater.dto.response.DateEventResponse;
+import com.slozic.dater.dto.response.MyDateEventData;
+import com.slozic.dater.dto.response.MyDateEventResponse;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,19 +21,19 @@ public class MyDateEventService {
     private final DateEventRepository dateEventRepository;
 
     @Transactional(readOnly = true)
-    public DateEventResponse getMyDateEventDtos(UUID currentUser) {
+    public MyDateEventResponse getMyDateEvents(UUID currentUser) {
         List<Date> myDateList = dateEventRepository.findAllByCreatedBy(currentUser);
         return mapToResponse(myDateList);
     }
 
-    private DateEventResponse mapToResponse(List<Date> myDateList) {
-        List<DateEventData> dateEventData = myDateList.stream().map(mapEntityToDto())
+    private MyDateEventResponse mapToResponse(List<Date> myDateList) {
+        List<MyDateEventData> dateEventData = myDateList.stream().map(mapEntityToDto())
                 .collect(Collectors.toList());
-        return new DateEventResponse(dateEventData);
+        return new MyDateEventResponse(dateEventData);
     }
 
-    private Function<Date, DateEventData> mapEntityToDto() {
-        return date -> new DateEventData(
+    private Function<Date, MyDateEventData> mapEntityToDto() {
+        return date -> new MyDateEventData(
                 date.getId().toString(),
                 date.getTitle(),
                 date.getLocation(),
@@ -41,6 +41,6 @@ public class MyDateEventService {
                 date.getUser().getUsername(),
                 "",
                 date.getScheduledTime().toString(),
-                "");
+                true);
     }
 }
