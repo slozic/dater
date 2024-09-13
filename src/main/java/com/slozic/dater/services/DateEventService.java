@@ -1,8 +1,9 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.response.DateEventData;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.response.DateEventData;
 import com.slozic.dater.dto.response.DateEventResponse;
+import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateEventRepository;
@@ -54,7 +55,9 @@ public class DateEventService {
 
     @Transactional(readOnly = true)
     public DateEventData getDateEventDto(String dateId) throws UnauthorizedException {
-        final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseGet(Date::new);
+        final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
+                .orElseThrow(() ->
+                        new DateEventException("No date event found: " + dateId));
         return mapEntityToDto().apply(dateEvent);
     }
 

@@ -5,9 +5,11 @@ import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.dto.response.DateAttendeeResponse;
 import com.slozic.dater.exceptions.AttendeeAlreadyExistsException;
 import com.slozic.dater.exceptions.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.repositories.DateEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DateAttendeesService {
     private final DateAttendeeRepository dateAttendeeRepository;
+    private final DateEventRepository dateEventRepository;
 
     @Transactional
     public DateAttendeeResponse getAllDateAttendees(String dateId) {
@@ -45,6 +48,13 @@ public class DateAttendeesService {
 
     @Transactional
     public JoinDateStatus addAttendeeToDate(String dateId, UUID currentUserId) {
+        dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
+                new DateEventException("No date event found: " + dateId));
+        createNewDateAttendee(dateId, currentUserId);
+        return JoinDateStatus.ON_WAITLIST;
+    }
+
+    private void createNewDateAttendee(String dateId, UUID currentUserId) {
         dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUserId, UUID.fromString(dateId))
                 .ifPresentOrElse(
                         attendee -> {
@@ -54,12 +64,15 @@ public class DateAttendeesService {
                                 .dateId(UUID.fromString(dateId))
                                 .attendeeId(currentUserId)
                                 .build()));
-
-        return JoinDateStatus.ON_WAITLIST;
     }
 
     @Transactional
     public JoinDateStatus acceptAttendeeRequest(String dateId, String userId, UUID currentUser) {
+        acceptDateAttendee(dateId, userId, currentUser);
+        return JoinDateStatus.ACCEPTED;
+    }
+
+    private void acceptDateAttendee(String dateId, String userId, UUID currentUser) {
         dateAttendeeRepository.findOneByAttendeeIdAndDateId(UUID.fromString(userId), UUID.fromString(dateId))
                 .ifPresentOrElse(
                         attendee -> {
@@ -71,8 +84,6 @@ public class DateAttendeesService {
                         () -> {
                             throw new AttendeeNotFoundException("Attendee not found for date: " + dateId);
                         });
-
-        return JoinDateStatus.ACCEPTED;
     }
 
     public JoinDateStatus getDateAttendeeStatus(String dateId, UUID currentUserId) {

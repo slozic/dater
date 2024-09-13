@@ -97,7 +97,7 @@ class DateImageControllerTestIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        assertThat(mvcResult.getResolvedException() instanceof DateEventException);
+        assertThat(mvcResult.getResolvedException() instanceof DateEventException).isTrue();
         assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("No DateEvents found with id: " + dateId);
     }
 
@@ -123,7 +123,7 @@ class DateImageControllerTestIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        assertThat(mvcResult.getResolvedException() instanceof DateImageException);
+        assertThat(mvcResult.getResolvedException() instanceof DateImageException).isTrue();
         assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("Unsupported file type text/plain");
     }
 
@@ -156,7 +156,7 @@ class DateImageControllerTestIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        assertThat(mvcResult.getResolvedException() instanceof DateImageException);
+        assertThat(mvcResult.getResolvedException() instanceof DateImageException).isTrue();
         assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("You can have only up to 3 images per date event!");
     }
 
