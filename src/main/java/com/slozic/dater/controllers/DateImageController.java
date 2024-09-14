@@ -23,14 +23,14 @@ public class DateImageController {
 
     @PostMapping
     public ResponseEntity<?> createDateEventImages(@PathVariable("id") String dateId,
-                                              @RequestParam("files") List<MultipartFile> images) {
+                                                   @RequestParam("files") List<MultipartFile> images) {
         dateEventImageService.createDateEventImages(dateId, images);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Data stored successfully!");
     }
 
     @GetMapping
-    public ResponseEntity<DateImageResponse> getImagesByDateId(@PathVariable("id") String dateId) {
+    public DateImageResponse getImagesByDateId(@PathVariable("id") String dateId) {
         DateImageResponse dateImageResponse = dateEventImageService.getDateEventImages(dateId);
-        return ResponseEntity.ok(dateImageResponse);
+        return dateImageResponse;
     }
 }

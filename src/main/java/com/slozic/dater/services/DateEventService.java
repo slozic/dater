@@ -48,6 +48,7 @@ public class DateEventService {
                 date.getLocation(),
                 date.getDescription(),
                 date.getUser().getUsername(),
+                date.getCreatedBy().toString(),
                 "",
                 date.getScheduledTime().toString(),
                 "");
@@ -56,8 +57,7 @@ public class DateEventService {
     @Transactional(readOnly = true)
     public DateEventData getDateEventDto(String dateId) throws UnauthorizedException {
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
-                .orElseThrow(() ->
-                        new DateEventException("No date event found: " + dateId));
+                .orElseThrow(() -> new DateEventException("No date event found: " + dateId));
         return mapEntityToDto().apply(dateEvent);
     }
 
@@ -76,8 +76,7 @@ public class DateEventService {
                 .scheduledTime(OffsetDateTime.of(LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneOffset.UTC))
                 .createdBy(UUID.fromString(userId))
                 .build();
-        final Date dateCreated = dateEventRepository.save(date);
-        return dateCreated;
+        return dateEventRepository.save(date);
     }
 
 

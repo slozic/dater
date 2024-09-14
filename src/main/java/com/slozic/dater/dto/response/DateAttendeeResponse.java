@@ -4,5 +4,5 @@ import com.slozic.dater.dto.DateAttendeeDto;
 
 import java.util.List;
 
-public record DateAttendeeResponse(List<DateAttendeeDto> dateAttendees) {
+public record DateAttendeeResponse(String dateId, List<DateAttendeeDto> dateAttendees) {
 }

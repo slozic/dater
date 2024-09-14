@@ -1,9 +1,6 @@
 package com.slozic.dater.exceptions.handlers;
 
-import com.slozic.dater.exceptions.DateEventException;
-import com.slozic.dater.exceptions.DateImageException;
-import com.slozic.dater.exceptions.FileStorageException;
-import com.slozic.dater.exceptions.UnauthorizedException;
+import com.slozic.dater.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,10 +53,20 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(FileStorageException.class)
-    ResponseEntity<ErrorResponse> handleErrorOnDateEventImageCreation(final FileStorageException ex) {
+    ResponseEntity<ErrorResponse> handleErrorOnImageStorage(final FileStorageException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.builder()
                         .title("Error occurred while storing the image file.")
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(AttendeeNotFoundException.class)
+    ResponseEntity<ErrorResponse> handleErrorOnImageStorage(final AttendeeNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .title("Date attendee could not be found!")
                         .detail(ex.getMessage())
                         .build());
     }

@@ -1,13 +1,12 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.dto.response.DateAttendeeResponse;
+import com.slozic.dater.dto.response.DateAttendeeStatusResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.DateAttendeesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,23 +25,21 @@ public class DateAttendeesController {
     }
 
     @GetMapping("/status")
-    public JoinDateStatus getDateAttendeeStatus(@PathVariable("id") String dateId) {
+    public DateAttendeeStatusResponse getMyDateAttendeeStatus(@PathVariable("id") String dateId) {
         final UUID currentUserId = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         return dateAttendeesService.getDateAttendeeStatus(dateId, currentUserId);
     }
 
     @PostMapping
-    public ResponseEntity<?> addAttendeeToDate(@PathVariable("id") String dateId) throws UnauthorizedException {
+    public DateAttendeeStatusResponse addAttendeeToDate(@PathVariable("id") String dateId) throws UnauthorizedException {
         final UUID currentUserId = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        JoinDateStatus joinDateStatus = dateAttendeesService.addAttendeeToDate(dateId, currentUserId);
-        return ResponseEntity.ok("User added successfully! Status: " + joinDateStatus);
+        return dateAttendeesService.addAttendeeToDate(dateId, currentUserId);
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<?> acceptDateAttendee(@PathVariable("id") String dateId, @PathVariable("userId") String userId)
+    public DateAttendeeStatusResponse acceptDateAttendee(@PathVariable("id") String dateId, @PathVariable("userId") String userId)
             throws UnauthorizedException {
         final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        JoinDateStatus joinDateStatus = dateAttendeesService.acceptAttendeeRequest(dateId, userId, currentUser);
-        return ResponseEntity.ok(joinDateStatus);
+        return dateAttendeesService.acceptAttendeeRequest(dateId, userId, currentUser);
     }
 }
