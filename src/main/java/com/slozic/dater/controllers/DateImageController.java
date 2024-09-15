@@ -1,12 +1,12 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.response.DateImageResponse;
+import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
+import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.services.DateEventImageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,10 +22,9 @@ public class DateImageController {
     private final DateEventImageService dateEventImageService;
 
     @PostMapping
-    public ResponseEntity<?> createDateEventImages(@PathVariable("id") String dateId,
-                                                   @RequestParam("files") List<MultipartFile> images) {
-        dateEventImageService.createDateEventImages(dateId, images);
-        return ResponseEntity.ok("Data stored successfully!");
+    public DateImageCreatedResponse createDateEventImages(@PathVariable("id") String dateId,
+                                                          @RequestParam("files") List<MultipartFile> images) {
+        return dateEventImageService.createDateEventImages(dateId, images);
     }
 
     @GetMapping

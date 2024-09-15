@@ -2,8 +2,8 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateAttendeeDto;
 import com.slozic.dater.dto.enums.JoinDateStatus;
-import com.slozic.dater.dto.response.DateAttendeeResponse;
-import com.slozic.dater.dto.response.DateAttendeeStatusResponse;
+import com.slozic.dater.dto.response.attendees.DateAttendeeResponse;
+import com.slozic.dater.dto.response.attendees.DateAttendeeStatusResponse;
 import com.slozic.dater.exceptions.AttendeeAlreadyExistsException;
 import com.slozic.dater.exceptions.AttendeeNotFoundException;
 import com.slozic.dater.exceptions.DateEventException;

@@ -1,8 +1,10 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.request.CreateDateEventRequest;
-import com.slozic.dater.dto.response.DateEventData;
-import com.slozic.dater.dto.response.DateEventResponse;
+import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
+import com.slozic.dater.dto.response.dates.DateEventListData;
+import com.slozic.dater.dto.response.dates.DateEventListResponse;
+import com.slozic.dater.dto.response.dates.DateEventResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
@@ -29,20 +31,36 @@ public class DateEventService {
     private final DateAttendeesService dateAttendeesService;
 
     @Transactional(readOnly = true)
-    public DateEventResponse getDateEvents() {
+    public DateEventListResponse getDateEvents() {
         final List<Date> dateList = dateEventRepository.findAll();
-        return mapToResponse(dateList);
+        return mapToListResponse(dateList);
     }
 
-    private DateEventResponse mapToResponse(List<Date> dateList) {
-        List<DateEventData> dateEventList = dateList.stream()
-                .map(mapEntityToDto())
+    private DateEventListResponse mapToListResponse(List<Date> dateList) {
+        List<DateEventListData> dateEventList = dateList.stream()
+                .map(mapEntityToListDto())
                 .collect(Collectors.toList());
-        return new DateEventResponse(dateEventList);
+        return new DateEventListResponse(dateEventList);
     }
 
-    private Function<Date, DateEventData> mapEntityToDto() {
-        return date -> new DateEventData(
+    private Function<Date, DateEventListData> mapEntityToListDto() {
+        return date -> new DateEventListData(
+                date.getId().toString(),
+                date.getTitle(),
+                date.getLocation(),
+                date.getDescription(),
+                date.getScheduledTime().toString());
+    }
+
+    @Transactional(readOnly = true)
+    public DateEventResponse getDateEvent(String dateId) throws UnauthorizedException {
+        final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
+                .orElseThrow(() -> new DateEventException("No date event found: " + dateId));
+        return mapEntityToDto().apply(dateEvent);
+    }
+
+    private Function<Date, DateEventResponse> mapEntityToDto() {
+        return date -> new DateEventResponse(
                 date.getId().toString(),
                 date.getTitle(),
                 date.getLocation(),
@@ -54,18 +72,11 @@ public class DateEventService {
                 "");
     }
 
-    @Transactional(readOnly = true)
-    public DateEventData getDateEventDto(String dateId) throws UnauthorizedException {
-        final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
-                .orElseThrow(() -> new DateEventException("No date event found: " + dateId));
-        return mapEntityToDto().apply(dateEvent);
-    }
-
     @Transactional
-    public UUID createDateEvent(final CreateDateEventRequest request, String userId) {
+    public DateEventCreatedResponse createDateEventWithDefaultAttendee(final CreateDateEventRequest request, String userId) {
         final Date dateCreated = saveDateEvent(request, userId);
         dateAttendeesService.createDefaultDateAttendee(dateCreated);
-        return dateCreated.getId();
+        return new DateEventCreatedResponse(dateCreated.getId().toString());
     }
 
     private Date saveDateEvent(final CreateDateEventRequest request, String userId) {
@@ -78,6 +89,5 @@ public class DateEventService {
                 .build();
         return dateEventRepository.save(date);
     }
-
 
 }

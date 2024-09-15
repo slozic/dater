@@ -1,4 +1,4 @@
-package com.slozic.dater.dto.response;
+package com.slozic.dater.dto.response.attendees;
 
 import com.slozic.dater.dto.DateAttendeeDto;
 

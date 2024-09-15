@@ -1,6 +1,7 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
@@ -62,7 +63,7 @@ public class DateEventServiceTest {
 
         // then
         CreateDateEventRequest request = new CreateDateEventRequest(title, location, description, scheduledTime);
-        UUID result = dateEventService.createDateEvent(request, currentUser.toString());
+        DateEventCreatedResponse result = dateEventService.createDateEventWithDefaultAttendee(request, currentUser.toString());
         assertNotNull(result);
     }
 }

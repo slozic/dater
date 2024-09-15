@@ -1,8 +1,9 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.response.DateEventData;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
-import com.slozic.dater.dto.response.DateEventResponse;
+import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
+import com.slozic.dater.dto.response.dates.DateEventListResponse;
+import com.slozic.dater.dto.response.dates.DateEventResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.DateEventService;
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,13 +26,12 @@ import java.util.UUID;
 @Slf4j
 @Tag(name = "DateEvent", description = "DateEvent related API calls")
 @SecurityRequirement(name = "bearerAuth")
-//@CrossOrigin(origins = "http://localhost:3000", originPatterns = "*", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.GET})
 public class DateEventController {
     private final DateEventService dateEventService;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
-    public DateEventResponse getAllDateEvents() throws UnauthorizedException {
+    public DateEventListResponse getAllDateEvents() throws UnauthorizedException {
         return dateEventService.getDateEvents();
     }
 
@@ -43,22 +42,20 @@ public class DateEventController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved DateEvent",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = DateEventData.class))}),
+                            schema = @Schema(implementation = DateEventResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Invalid id given",
                     content = @Content),
             @ApiResponse(responseCode = "404", description = "DateEvent not found!",
                     content = @Content)})
     @GetMapping("/{id}")
-    public DateEventData getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
-        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return dateEventService.getDateEventDto(dateId);
+    public DateEventResponse getDateEventById(@PathVariable("id") final String dateId) throws UnauthorizedException {
+        return dateEventService.getDateEvent(dateId);
     }
 
     @PostMapping
-    public ResponseEntity<?> createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
+    public DateEventCreatedResponse createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        UUID dateId = dateEventService.createDateEvent(dateEventRequest, currentUser.toString());
-        return ResponseEntity.ok(dateId);
+        return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest, currentUser.toString());
     }
 
 }

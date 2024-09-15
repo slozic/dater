@@ -1,8 +1,9 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateImageDto;
-import com.slozic.dater.dto.response.DateImageData;
-import com.slozic.dater.dto.response.DateImageResponse;
+import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
+import com.slozic.dater.dto.response.images.DateImageData;
+import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
 import com.slozic.dater.models.Date;
@@ -31,11 +32,12 @@ public class DateEventImageService {
     private final ImageStorageService imageStorageService;
 
     @Transactional
-    public void createDateEventImages(final String dateId, final List<MultipartFile> images) {
+    public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
         validateInput(dateId, images, optionalDate);
         List<DateImageDto> dateImageDtos = storeImages(dateId, images);
-        saveMetaDataAsEntity(dateImageDtos);
+        List<String> imageIds = saveMetaDataAsEntity(dateImageDtos);
+        return new DateImageCreatedResponse(dateId, imageIds);
     }
 
     private void validateInput(String dateId, List<MultipartFile> images, Optional<Date> optionalDate) {
@@ -70,15 +72,18 @@ public class DateEventImageService {
         return dateImageDtoList;
     }
 
-    private void saveMetaDataAsEntity(final List<DateImageDto> dateImageDtos) {
+    private List<String> saveMetaDataAsEntity(final List<DateImageDto> dateImageDtos) {
+        List<String> imagesList = new ArrayList<>();
         for (DateImageDto dateImage : dateImageDtos) {
             DateImage image = DateImage.builder()
                     .dateId(UUID.fromString(dateImage.dateId()))
                     .imagePath(dateImage.imagePath())
                     .imageSize((int) dateImage.imageSize())
                     .build();
-            dateImageRepository.save(image);
+            DateImage savedImage = dateImageRepository.save(image);
+            imagesList.add(savedImage.getId().toString());
         }
+        return imagesList;
     }
 
     public DateImageResponse getDateEventImages(final String dateId) {

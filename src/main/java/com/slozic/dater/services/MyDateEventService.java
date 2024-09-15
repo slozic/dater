@@ -1,5 +1,6 @@
 package com.slozic.dater.services;
 
+import com.slozic.dater.controllers.params.QueryParameters;
 import com.slozic.dater.dto.response.MyDateEventData;
 import com.slozic.dater.dto.response.MyDateEventResponse;
 import com.slozic.dater.models.Date;
@@ -21,7 +22,7 @@ public class MyDateEventService {
     private final DateEventRepository dateEventRepository;
 
     @Transactional(readOnly = true)
-    public MyDateEventResponse getMyDateEvents(UUID currentUser) {
+    public MyDateEventResponse getDatesUserCreatedOrRequested(UUID currentUser, QueryParameters queryParameters) {
         List<Date> myDateList = dateEventRepository.findAllByCreatedBy(currentUser);
         return mapToResponse(myDateList);
     }

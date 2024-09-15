@@ -1,7 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slozic.dater.dto.response.DateAttendeeResponse;
+import com.slozic.dater.dto.response.attendees.DateAttendeeResponse;
 import com.slozic.dater.exceptions.AttendeeAlreadyExistsException;
 import com.slozic.dater.exceptions.AttendeeNotFoundException;
 import com.slozic.dater.exceptions.DateEventException;

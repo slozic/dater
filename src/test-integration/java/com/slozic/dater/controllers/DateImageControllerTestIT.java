@@ -1,7 +1,8 @@
 package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slozic.dater.dto.response.DateImageResponse;
+import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
+import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
 import com.slozic.dater.models.DateImage;
@@ -71,8 +72,9 @@ class DateImageControllerTestIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        dateEventImageMetaData = dateEventImageService.getDateEventImageMetaData(dateId);
-        assertThat(dateEventImageMetaData).size().isEqualTo(3);
+        DateImageCreatedResponse dateImageCreatedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateImageCreatedResponse.class);
+        assertThat(dateImageCreatedResponse.imageIds()).size().isEqualTo(3);
+        assertThat(dateImageCreatedResponse.dateId()).isEqualTo(dateId);
     }
 
     @Test

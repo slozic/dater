@@ -1,4 +1,4 @@
-package com.slozic.dater.dto.response;
+package com.slozic.dater.dto.response.images;
 
 import java.util.List;
 

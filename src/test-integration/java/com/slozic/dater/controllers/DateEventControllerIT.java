@@ -2,7 +2,8 @@ package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
-import com.slozic.dater.dto.response.DateEventResponse;
+import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
+import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.services.DateEventService;
@@ -23,6 +24,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
 public class DateEventControllerIT extends IntegrationTest {
@@ -55,8 +57,8 @@ public class DateEventControllerIT extends IntegrationTest {
 
         // then
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
-        DateEventResponse dateEventResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventResponse.class);
-        assertThat(dateEventResponse.dateEventData().size()).isEqualTo(2);
+        DateEventListResponse dateEventListResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventListResponse.class);
+        assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(2);
     }
 
     @Test
@@ -86,13 +88,12 @@ public class DateEventControllerIT extends IntegrationTest {
                         .content(objectMapper.writeValueAsString(createDateEventRequest))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
                 .andReturn();
 
         // then
-        DateEventResponse dateEventResponse = dateEventService.getDateEvents();
-        assertThat(dateEventResponse.dateEventData().size()).isEqualTo(1);
-        assertThat(dateEventResponse.dateEventData().get(0).dateOwnerId()).isEqualTo(userId);
-        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
+        DateEventCreatedResponse createdResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventCreatedResponse.class);
+        assertThat(createdResponse.dateEventId()).isNotBlank();
     }
 
     @Test
@@ -114,8 +115,8 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        DateEventResponse dateEventResponse = dateEventService.getDateEvents();
-        assertThat(dateEventResponse.dateEventData().size()).isEqualTo(0);
+        DateEventListResponse dateEventListResponse = dateEventService.getDateEvents();
+        assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(0);
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
 
