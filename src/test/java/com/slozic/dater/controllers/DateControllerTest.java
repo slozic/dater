@@ -25,9 +25,6 @@ public class DateControllerTest {
     private DateEventService dateEventService;
 
     @MockBean
-    private MyDateEventService myDateEventService;
-
-    @MockBean
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Test
