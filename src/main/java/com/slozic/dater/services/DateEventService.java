@@ -1,5 +1,7 @@
 package com.slozic.dater.services;
 
+import com.slozic.dater.controllers.params.DateQueryParameters;
+import com.slozic.dater.dto.enums.DateFilter;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListData;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -31,9 +34,25 @@ public class DateEventService {
     private final DateAttendeesService dateAttendeesService;
 
     @Transactional(readOnly = true)
-    public DateEventListResponse getDateEvents() {
-        final List<Date> dateList = dateEventRepository.findAll();
+    public DateEventListResponse getDateEvents(DateQueryParameters dateQueryParameters, UUID currentUser) {
+        List<Date> dateList = filterDatesByParameters(dateQueryParameters, currentUser);
         return mapToListResponse(dateList);
+    }
+    
+    private List<Date> filterDatesByParameters(DateQueryParameters dateQueryParameters, UUID currentUser) {
+        List<Date> dateList = new ArrayList<>();
+        DateFilter dateFilter = DateFilter.fromString(dateQueryParameters.filter());
+
+        if (dateFilter.equals(DateFilter.ALL)) {
+            dateList = dateEventRepository.findAll();
+        } else {
+            if (dateFilter.equals(DateFilter.OWNED)) {
+                dateList = dateEventRepository.findAllByCreatedBy(currentUser);
+            } else if (dateFilter.equals(DateFilter.REQUESTED)) {
+                dateList = dateEventRepository.findDatesByAttendeeId(currentUser);
+            }
+        }
+        return dateList;
     }
 
     private DateEventListResponse mapToListResponse(List<Date> dateList) {

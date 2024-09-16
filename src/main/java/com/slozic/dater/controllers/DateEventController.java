@@ -1,5 +1,7 @@
 package com.slozic.dater.controllers;
 
+import com.slozic.dater.controllers.params.DateQueryParameters;
+import com.slozic.dater.dto.enums.DateFilter;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
@@ -31,8 +33,9 @@ public class DateEventController {
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
-    public DateEventListResponse getAllDateEvents() throws UnauthorizedException {
-        return dateEventService.getDateEvents();
+    public DateEventListResponse getAllDateEvents(final DateQueryParameters dateQueryParameters) throws UnauthorizedException {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        return dateEventService.getDateEvents(dateQueryParameters, currentUser);
     }
 
     @Operation(

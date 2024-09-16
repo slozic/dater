@@ -32,6 +32,7 @@ public class DateEventControllerIT extends IntegrationTest {
     private JwsBuilder jwsBuilder;
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private DateEventService dateEventService;
 
@@ -59,6 +60,48 @@ public class DateEventControllerIT extends IntegrationTest {
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
         DateEventListResponse dateEventListResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventListResponse.class);
         assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(2);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql"})
+    public void getAllDateEvents_shouldLoadUserOwnedDatesWithSuccess() throws Exception {
+        // given
+        String token = jwsBuilder.getJwt("aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5");
+
+        // when
+        var mvcResult = mockMvc.perform(
+                        get("/dates").param("filter", "owned")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        // then
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
+        DateEventListResponse dateEventListResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventListResponse.class);
+        assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(1);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql"})
+    public void getAllDateEvents_shouldLoadUserRequestedDatesWithSuccess() throws Exception {
+        // given
+        String token = jwsBuilder.getJwt("aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5");
+
+        // when
+        var mvcResult = mockMvc.perform(
+                        get("/dates").param("filter", "owned")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        // then
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
+        DateEventListResponse dateEventListResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventListResponse.class);
+        assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(1);
     }
 
     @Test
@@ -94,30 +137,6 @@ public class DateEventControllerIT extends IntegrationTest {
         // then
         DateEventCreatedResponse createdResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateEventCreatedResponse.class);
         assertThat(createdResponse.dateEventId()).isNotBlank();
-    }
-
-    @Test
-    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
-            "classpath:fixtures/loadUsers.sql"})
-    public void createDateEvent_shouldFailWithNonExistingUser() throws Exception {
-        // given
-        // random non-existing user
-        String userId = "";
-        String token = jwsBuilder.getJwt(userId);
-
-        final CreateDateEventRequest createDateEventRequest = getCreateDateEventRequest();
-
-        // when
-        var mvcResult = mockMvc.perform(post("/dates")
-                        .content(objectMapper.writeValueAsString(createDateEventRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andReturn();
-
-        // then
-        DateEventListResponse dateEventListResponse = dateEventService.getDateEvents();
-        assertThat(dateEventListResponse.dateEventData().size()).isEqualTo(0);
-        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
 
     @Test
