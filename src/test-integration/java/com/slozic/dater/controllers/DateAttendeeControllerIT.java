@@ -190,4 +190,25 @@ public class DateAttendeeControllerIT extends IntegrationTest {
         // then
         assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"ACCEPTED\",\"attendeeId\":\"6c49abd4-0e82-47f6-bb0c-558c9a890bd4\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
     }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
+    public void getAttendeeStatus_shouldReturnNotRequested() throws Exception {
+        // given
+        String userId = "c041718c-2be3-4ddc-9155-7690bb123333";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var mvcResult = mockMvc.perform(
+                        get("/dates/{dateId}/attendees/status", dateId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        // then
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"NOT_REQUESTED\",\"attendeeId\":\"c041718c-2be3-4ddc-9155-7690bb123333\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
+    }
 }

@@ -1,7 +1,6 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.controllers.params.DateQueryParameters;
-import com.slozic.dater.dto.enums.DateFilter;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;

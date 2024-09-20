@@ -76,7 +76,7 @@ public class DateAttendeesService {
     @Transactional
     public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId, UUID currentUser) {
         acceptDateAttendee(dateId, userId, currentUser);
-        return new DateAttendeeStatusResponse(JoinDateStatus.ACCEPTED, userId.toString(), dateId);
+        return new DateAttendeeStatusResponse(JoinDateStatus.ACCEPTED, userId, dateId);
     }
 
     private void acceptDateAttendee(String dateId, String userId, UUID currentUser) {
@@ -96,7 +96,7 @@ public class DateAttendeesService {
     public DateAttendeeStatusResponse getDateAttendeeStatus(String dateId, UUID currentUserId) {
         JoinDateStatus joinDateStatus = dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUserId, UUID.fromString(dateId))
                 .map(dateAttendee -> dateAttendee.getAccepted() ? JoinDateStatus.ACCEPTED : JoinDateStatus.ON_WAITLIST)
-                .orElseThrow(() -> new AttendeeNotFoundException("Attendee not found for date: " + dateId));
+                .orElse(JoinDateStatus.NOT_REQUESTED);
         return new DateAttendeeStatusResponse(joinDateStatus, currentUserId.toString(), dateId);
     }
 }

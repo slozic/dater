@@ -62,7 +62,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(AttendeeNotFoundException.class)
-    ResponseEntity<ErrorResponse> handleErrorOnImageStorage(final AttendeeNotFoundException ex) {
+    ResponseEntity<ErrorResponse> handleAttendeeNotFound(final AttendeeNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.builder()
                         .status(HttpStatus.NOT_FOUND.value())
