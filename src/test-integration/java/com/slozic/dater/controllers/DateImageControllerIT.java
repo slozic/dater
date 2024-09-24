@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
-class DateImageControllerTestIT extends IntegrationTest {
+class DateImageControllerIT extends IntegrationTest {
     private static final String RESOURCES_DATE_TEST_JPG = "src/test-integration/resources/date-test.jpg";
     private static final String RESOURCES_DATE_INVALID_FORMAT = "src/test-integration/resources/date-invalid-file.txt";
     @Autowired

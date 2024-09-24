@@ -9,15 +9,14 @@ import org.hibernate.Hibernate;
 import java.util.Objects;
 import java.util.UUID;
 
-
 @Entity
-@Table(name = "date_images")
+@Table(name = "user_images")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder(toBuilder = true)
-public class DateImage {
+public class UserImage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -29,16 +28,16 @@ public class DateImage {
     private int imageSize;
 
     @NotNull
-    @Column(name = "dateId")
-    private UUID dateId;
+    @Column(name = "userId")
+    private UUID userId;
 
     @NotNull
     @Builder.Default
     private boolean enabled = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dateId", nullable = false, insertable = false, updatable = false)
-    private Date date;
+    @JoinColumn(name = "userId", nullable = false, insertable = false, updatable = false)
+    private User user;
 
     @Override
     public boolean equals(final Object o) {
@@ -48,8 +47,8 @@ public class DateImage {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        final DateImage dateImage = (DateImage) o;
-        return Objects.equals(id, dateImage.id);
+        final UserImage userImage = (UserImage) o;
+        return Objects.equals(id, userImage.id);
     }
 
     @Override

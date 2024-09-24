@@ -26,7 +26,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class DateEventImageService {
-    public static final int MAX_IMAGES_PER_DATE = 3;
+    private static final int MAX_IMAGES_PER_DATE = 3;
     private final DateImageRepository dateImageRepository;
     private final DateEventRepository dateEventRepository;
     private final ImageStorageService imageStorageService;
