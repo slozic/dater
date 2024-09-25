@@ -1,10 +1,10 @@
 package com.slozic.dater.services;
 
+import com.slozic.dater.dto.ImageParameters;
 import com.slozic.dater.exceptions.FileStorageException;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,26 +16,17 @@ import java.util.random.RandomGenerator;
 @Slf4j
 public class LocalImageStorageService implements ImageStorageService {
 
-    @Value("${date.images.location}")
-    private String DEFAULT_IMAGES_LOCATION;
-    @Value("${date.images.width}")
-    private int DEFAULT_IMAGE_RESIZE_WIDTH;
-    @Value("${date.images.height}")
-    private int DEFAULT_IMAGE_RESIZE_HEIGHT;
-    @Value("${date.images.resize-type}")
-    private String DEFAULT_IMAGE_RESIZE_TYPE;
-
     @Override
-    public String storeImage(final MultipartFile image) {
+    public String storeImage(final MultipartFile image, ImageParameters parameters) {
         if (image != null) {
-            return writeImageToDisk(image);
+            return writeImageToDisk(image, parameters);
         }
         return StringUtils.EMPTY;
     }
 
-    private String writeImageToDisk(final MultipartFile image) {
-        File imageDir = new File(DEFAULT_IMAGES_LOCATION);
-        File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + RandomGenerator.getDefault().nextInt() + "." + DEFAULT_IMAGE_RESIZE_TYPE);
+    private String writeImageToDisk(final MultipartFile image, final ImageParameters parameters) {
+        File imageDir = new File(parameters.location());
+        File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + RandomGenerator.getDefault().nextInt() + "." + parameters.type());
 
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(image.getBytes());
@@ -47,8 +38,7 @@ public class LocalImageStorageService implements ImageStorageService {
 
     @Override
     public byte[] loadImage(String imagePath) {
-        byte[] imageBytes = getImageBytes(imagePath);
-        return resizeImage(imageBytes, imagePath);
+        return getImageBytes(imagePath);
     }
 
     private byte[] getImageBytes(String imagePath) {
@@ -63,15 +53,16 @@ public class LocalImageStorageService implements ImageStorageService {
         return imageBytes;
     }
 
-    private byte[] resizeImage(byte[] imageBytes, String imagePath) {
+    @Override
+    public byte[] resizeImage(byte[] imageBytes, ImageParameters parameters) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Thumbnails.of(new ByteArrayInputStream(imageBytes))
-                    .size(DEFAULT_IMAGE_RESIZE_WIDTH, DEFAULT_IMAGE_RESIZE_HEIGHT)
-                    .outputFormat(DEFAULT_IMAGE_RESIZE_TYPE)
+                    .size(parameters.width(), parameters.height())
+                    .outputFormat(parameters.type())
                     .toOutputStream(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new FileStorageException("Could not load image " + imagePath + ". Please try again!", e);
+            throw new FileStorageException("Could not load image " + parameters.location() + ". Please try again!", e);
         }
     }
 }

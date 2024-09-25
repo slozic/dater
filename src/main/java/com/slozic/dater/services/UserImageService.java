@@ -1,10 +1,15 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.UserImageDto;
+import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.UserImageCreatedResponse;
+import com.slozic.dater.dto.response.userprofile.UserImageData;
+import com.slozic.dater.dto.response.userprofile.UserImageResponse;
 import com.slozic.dater.exceptions.UserImageException;
 import com.slozic.dater.models.UserImage;
 import com.slozic.dater.repositories.UserImageRepository;
+import com.slozic.dater.services.images.ImageStorageStrategy;
+import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -20,7 +25,7 @@ public class UserImageService {
     @Value("${user.images.max-count}")
     private int MAX_IMAGES_PER_USER_PROFILE;
     @Autowired
-    private ImageStorageService imageStorageService;
+    private ImageStorageStrategyFactory imageStorageStrategyFactory;
     @Autowired
     private UserImageRepository userImageRepository;
 
@@ -51,12 +56,17 @@ public class UserImageService {
         List<UserImageDto> userImageDtoList = new ArrayList<>();
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
-                String imagePath = imageStorageService.storeImage(file);
+                String imagePath = getImageStorageStrategy().storeImage(file);
                 UserImageDto userImageDto = new UserImageDto(userId, imagePath, file.getSize());
                 userImageDtoList.add(userImageDto);
             }
         }
         return userImageDtoList;
+    }
+
+    private ImageStorageStrategy getImageStorageStrategy() {
+        ImageStorageStrategy imageStorageStrategy = imageStorageStrategyFactory.getStrategy(ImageCategory.DATE);
+        return imageStorageStrategy;
     }
 
     private List<String> saveMetaDataAsEntity(List<UserImageDto> userImageDtos) {
@@ -71,6 +81,21 @@ public class UserImageService {
             imagesList.add(savedImage.getId().toString());
         }
         return imagesList;
+    }
+
+    public UserImageResponse getDateEventImages(final String userId) {
+        List<UserImage> userImages = userImageRepository.findAllByUserId(UUID.fromString(userId));
+        List<UserImageData> userImageDataList = loadImagesIntoDto(userImages);
+        return new UserImageResponse(userImageDataList, userId);
+    }
+
+    private List<UserImageData> loadImagesIntoDto(List<UserImage> userImageList) {
+        List<UserImageData> userImageDataList = new ArrayList<>();
+        for (UserImage image : userImageList) {
+            byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
+            userImageDataList.add(new UserImageData(imageBytes, image.getId().toString()));
+        }
+        return userImageDataList;
     }
 
 }

@@ -1,4 +1,6 @@
 package com.slozic.dater.dto.response.userprofile;
 
-public record UserImageResponse() {
+import java.util.List;
+
+public record UserImageResponse(List<UserImageData> userImageDataList, String userId) {
 }

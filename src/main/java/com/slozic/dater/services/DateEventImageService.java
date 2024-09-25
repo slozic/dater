@@ -1,6 +1,7 @@
 package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateImageDto;
+import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageData;
 import com.slozic.dater.dto.response.images.DateImageResponse;
@@ -10,6 +11,8 @@ import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
+import com.slozic.dater.services.images.ImageStorageStrategy;
+import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +36,7 @@ public class DateEventImageService {
     @Autowired
     private DateEventRepository dateEventRepository;
     @Autowired
-    private ImageStorageService imageStorageService;
+    private ImageStorageStrategyFactory imageStorageStrategyFactory;
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {
@@ -68,12 +71,17 @@ public class DateEventImageService {
         List<DateImageDto> dateImageDtoList = new ArrayList<>();
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
-                String imagePath = imageStorageService.storeImage(file);
+                String imagePath = getImageStorageStrategy().storeImage(file);
                 DateImageDto dateImageDto = new DateImageDto(dateId, imagePath, file.getSize());
                 dateImageDtoList.add(dateImageDto);
             }
         }
         return dateImageDtoList;
+    }
+
+    private ImageStorageStrategy getImageStorageStrategy() {
+        ImageStorageStrategy imageStorageStrategy = imageStorageStrategyFactory.getStrategy(ImageCategory.DATE);
+        return imageStorageStrategy;
     }
 
     private List<String> saveMetaDataAsEntity(final List<DateImageDto> dateImageDtos) {
@@ -99,7 +107,7 @@ public class DateEventImageService {
     private List<DateImageData> loadImagesIntoDto(List<DateImage> dateImageList) {
         List<DateImageData> dateImageDataList = new ArrayList<>();
         for (DateImage image : dateImageList) {
-            byte[] imageBytes = imageStorageService.loadImage(image.getImagePath());
+            byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
             dateImageDataList.add(new DateImageData(imageBytes, image.getId().toString()));
         }
         return dateImageDataList;
