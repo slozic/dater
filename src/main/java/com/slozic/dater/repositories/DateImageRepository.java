@@ -7,6 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DateImageRepository extends JpaRepository<DateImage, UUID> {
-
     List<DateImage> findAllByDateId(UUID dateId);
 }

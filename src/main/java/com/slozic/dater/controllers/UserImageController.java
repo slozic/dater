@@ -1,6 +1,6 @@
 package com.slozic.dater.controllers;
 
-import com.slozic.dater.dto.UserImageCreatedResponse;
+import com.slozic.dater.dto.response.userprofile.UserImageCreatedResponse;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.UserImageService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class UserImageController {
-
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
     private final UserImageService userImageService;
 

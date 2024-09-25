@@ -1,11 +1,12 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.UserImageCreatedResponse;
-import com.slozic.dater.dto.response.userprofile.UserImageDto;
-import com.slozic.dater.exceptions.DateImageException;
+import com.slozic.dater.dto.UserImageDto;
+import com.slozic.dater.dto.response.userprofile.UserImageCreatedResponse;
+import com.slozic.dater.exceptions.UserImageException;
 import com.slozic.dater.models.UserImage;
 import com.slozic.dater.repositories.UserImageRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,12 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Service
 public class UserImageService {
-    private static final int MAX_IMAGES_PER_USER_PROFILE = 3;
-    private final ImageStorageService imageStorageService;
-    private final UserImageRepository userImageRepository;
+    @Value("${user.images.max-count}")
+    private int MAX_IMAGES_PER_USER_PROFILE;
+    @Autowired
+    private ImageStorageService imageStorageService;
+    @Autowired
+    private UserImageRepository userImageRepository;
 
     public UserImageCreatedResponse createUserImages(UUID userId, List<MultipartFile> images) {
         validateInput(images);
@@ -30,16 +33,16 @@ public class UserImageService {
 
     private void validateInput(List<MultipartFile> images) {
         if (images == null || images.isEmpty()) {
-            throw new DateImageException("No Images provided for Date Event");
+            throw new UserImageException("No Images provided.");
         }
 
         if (images.size() > MAX_IMAGES_PER_USER_PROFILE) {
-            throw new DateImageException("You can have only up to " + MAX_IMAGES_PER_USER_PROFILE + " images per user profile!");
+            throw new UserImageException("You can have only up to " + MAX_IMAGES_PER_USER_PROFILE + " images per user profile!");
         }
 
         for (MultipartFile image : images) {
             if (!image.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !image.getContentType().equals(MediaType.IMAGE_PNG_VALUE)) {
-                throw new DateImageException("Unsupported file type " + image.getContentType());
+                throw new UserImageException("Unsupported file type " + image.getContentType());
             }
         }
     }

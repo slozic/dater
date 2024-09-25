@@ -10,8 +10,9 @@ import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +24,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class DateEventImageService {
+    @Value("${date.images.max-count}")
     private static final int MAX_IMAGES_PER_DATE = 3;
-    private final DateImageRepository dateImageRepository;
-    private final DateEventRepository dateEventRepository;
-    private final ImageStorageService imageStorageService;
+    @Autowired
+    private DateImageRepository dateImageRepository;
+    @Autowired
+    private DateEventRepository dateEventRepository;
+    @Autowired
+    private ImageStorageService imageStorageService;
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {

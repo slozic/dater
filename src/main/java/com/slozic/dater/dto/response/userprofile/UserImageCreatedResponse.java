@@ -1,4 +1,4 @@
-package com.slozic.dater.dto;
+package com.slozic.dater.dto.response.userprofile;
 
 import java.util.List;
 

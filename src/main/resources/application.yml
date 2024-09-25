@@ -38,3 +38,19 @@ openapi:
 
 jwt:
   signing-key: "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey"
+
+user:
+  images:
+    location: "C:\\Users\\sly-x\\projects\\spring\\dater-images\\user"
+    max-count: 3
+    width: 400
+    height: 600
+    resize-type: jpg
+
+date:
+  images:
+    max-count: 3
+    location: "C:\\Users\\sly-x\\projects\\spring\\dater-images"
+    width: 400
+    height: 600
+    resize-type: jpg
