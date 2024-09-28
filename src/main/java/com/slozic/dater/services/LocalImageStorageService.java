@@ -17,7 +17,7 @@ import java.util.random.RandomGenerator;
 public class LocalImageStorageService implements ImageStorageService {
 
     @Override
-    public String storeImage(final MultipartFile image, ImageParameters parameters) {
+    public String storeImage(final MultipartFile image, final ImageParameters parameters) {
         if (image != null) {
             return writeImageToDisk(image, parameters);
         }
@@ -26,7 +26,7 @@ public class LocalImageStorageService implements ImageStorageService {
 
     private String writeImageToDisk(final MultipartFile image, final ImageParameters parameters) {
         File imageDir = new File(parameters.location());
-        File file = new File(imageDir.getPath() + "\\" + System.currentTimeMillis() + RandomGenerator.getDefault().nextInt() + "." + parameters.type());
+        File file = getFile(parameters, imageDir);
 
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(image.getBytes());
@@ -34,6 +34,13 @@ public class LocalImageStorageService implements ImageStorageService {
             throw new FileStorageException("Could not store image " + image.getName() + ". Please try again!", ex);
         }
         return file.getPath();
+    }
+
+    private File getFile(ImageParameters parameters, File imageDir) {
+        return new File(imageDir.getPath() + "\\" +
+                System.currentTimeMillis() +
+                RandomGenerator.getDefault().nextInt() + "." +
+                parameters.type());
     }
 
     @Override

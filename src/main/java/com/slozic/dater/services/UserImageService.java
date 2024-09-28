@@ -83,7 +83,7 @@ public class UserImageService {
         return imagesList;
     }
 
-    public UserImageResponse getDateEventImages(final String userId) {
+    public UserImageResponse getUserImages(final String userId) {
         List<UserImage> userImages = userImageRepository.findAllByUserId(UUID.fromString(userId));
         List<UserImageData> userImageDataList = loadImagesIntoDto(userImages);
         return new UserImageResponse(userImageDataList, userId);
@@ -97,5 +97,4 @@ public class UserImageService {
         }
         return userImageDataList;
     }
-
 }

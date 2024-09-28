@@ -21,7 +21,6 @@ public class UsersController {
     public UserDto getCurrentAuthenticatedUser() throws UnauthorizedException {
         return userService.getCurrentAuthenticatedUser();
     }
-
     @PostMapping("/registration")
     public ResponseEntity<?> register(@RequestBody final UserRegistrationRequest request) {
         userService.doUserRegistration(request);
