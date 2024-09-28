@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
-public class UserImageStorageStrategy implements ImageStorageStrategy {
+public class ProfileImageStorageStrategy implements ImageStorageStrategy {
     @Value("${user.images.location}")
     private String imageLocation;
     @Value("${user.images.width}")
@@ -17,7 +17,6 @@ public class UserImageStorageStrategy implements ImageStorageStrategy {
     private int imageHeight;
     @Value("${user.images.resize-type}")
     private String imageType;
-
     @Autowired
     private ImageStorageService imageStorageService;
 

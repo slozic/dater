@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImageStorageStrategyFactory {
     private final DateImageStorageStrategy dateImageStorageStrategy;
-    private final UserImageStorageStrategy userImageStorageStrategy;
+    private final ProfileImageStorageStrategy profileImageStorageStrategy;
 
     public ImageStorageStrategy getStrategy(ImageCategory imageCategory) {
         if (imageCategory.equals(ImageCategory.DATE)) {
             return dateImageStorageStrategy;
         } else if (imageCategory.equals(ImageCategory.USER)) {
-            return userImageStorageStrategy;
+            return profileImageStorageStrategy;
         }
         throw new IllegalArgumentException("Invalid image category");
     }

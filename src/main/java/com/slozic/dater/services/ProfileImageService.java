@@ -1,13 +1,13 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.UserImageDto;
+import com.slozic.dater.dto.ProfileImageDto;
 import com.slozic.dater.dto.enums.ImageCategory;
-import com.slozic.dater.dto.response.userprofile.UserImageCreatedResponse;
-import com.slozic.dater.dto.response.userprofile.UserImageData;
-import com.slozic.dater.dto.response.userprofile.UserImageResponse;
+import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
+import com.slozic.dater.dto.response.userprofile.ProfileImageData;
+import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
 import com.slozic.dater.exceptions.UserImageException;
 import com.slozic.dater.models.UserImage;
-import com.slozic.dater.repositories.UserImageRepository;
+import com.slozic.dater.repositories.ProfileImageRepository;
 import com.slozic.dater.services.images.ImageStorageStrategy;
 import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,19 +21,19 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class UserImageService {
+public class ProfileImageService {
     @Value("${user.images.max-count}")
     private int MAX_IMAGES_PER_USER_PROFILE;
     @Autowired
     private ImageStorageStrategyFactory imageStorageStrategyFactory;
     @Autowired
-    private UserImageRepository userImageRepository;
+    private ProfileImageRepository profileImageRepository;
 
-    public UserImageCreatedResponse createUserImages(UUID userId, List<MultipartFile> images) {
+    public ProfileImageCreatedResponse createProfileImages(UUID userId, List<MultipartFile> images) {
         validateInput(images);
-        List<UserImageDto> userImageDtos = storeImages(userId.toString(), images);
-        List<String> imageIds = saveMetaDataAsEntity(userImageDtos);
-        return new UserImageCreatedResponse(userId.toString(), imageIds);
+        List<ProfileImageDto> profileImageDtos = storeImages(userId.toString(), images);
+        List<String> imageIds = saveMetaDataAsEntity(profileImageDtos);
+        return new ProfileImageCreatedResponse(userId.toString(), imageIds);
     }
 
     private void validateInput(List<MultipartFile> images) {
@@ -52,16 +52,16 @@ public class UserImageService {
         }
     }
 
-    private List<UserImageDto> storeImages(String userId, List<MultipartFile> images) {
-        List<UserImageDto> userImageDtoList = new ArrayList<>();
+    private List<ProfileImageDto> storeImages(String userId, List<MultipartFile> images) {
+        List<ProfileImageDto> profileImageDtoList = new ArrayList<>();
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
                 String imagePath = getImageStorageStrategy().storeImage(file);
-                UserImageDto userImageDto = new UserImageDto(userId, imagePath, file.getSize());
-                userImageDtoList.add(userImageDto);
+                ProfileImageDto profileImageDto = new ProfileImageDto(userId, imagePath, file.getSize());
+                profileImageDtoList.add(profileImageDto);
             }
         }
-        return userImageDtoList;
+        return profileImageDtoList;
     }
 
     private ImageStorageStrategy getImageStorageStrategy() {
@@ -69,32 +69,32 @@ public class UserImageService {
         return imageStorageStrategy;
     }
 
-    private List<String> saveMetaDataAsEntity(List<UserImageDto> userImageDtos) {
+    private List<String> saveMetaDataAsEntity(List<ProfileImageDto> profileImageDtos) {
         List<String> imagesList = new ArrayList<>();
-        for (UserImageDto userImage : userImageDtos) {
+        for (ProfileImageDto userImage : profileImageDtos) {
             UserImage image = UserImage.builder()
                     .userId(UUID.fromString(userImage.userId()))
                     .imagePath(userImage.imagePath())
                     .imageSize((int) userImage.size())
                     .build();
-            UserImage savedImage = userImageRepository.save(image);
+            UserImage savedImage = profileImageRepository.save(image);
             imagesList.add(savedImage.getId().toString());
         }
         return imagesList;
     }
 
-    public UserImageResponse getUserImages(final String userId) {
-        List<UserImage> userImages = userImageRepository.findAllByUserId(UUID.fromString(userId));
-        List<UserImageData> userImageDataList = loadImagesIntoDto(userImages);
-        return new UserImageResponse(userImageDataList, userId);
+    public ProfileImageResponse getProfileImages(final String userId) {
+        List<UserImage> userImages = profileImageRepository.findAllByUserId(UUID.fromString(userId));
+        List<ProfileImageData> profileImageDataList = loadImagesIntoDto(userImages);
+        return new ProfileImageResponse(profileImageDataList, userId);
     }
 
-    private List<UserImageData> loadImagesIntoDto(List<UserImage> userImageList) {
-        List<UserImageData> userImageDataList = new ArrayList<>();
+    private List<ProfileImageData> loadImagesIntoDto(List<UserImage> userImageList) {
+        List<ProfileImageData> profileImageDataList = new ArrayList<>();
         for (UserImage image : userImageList) {
             byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
-            userImageDataList.add(new UserImageData(imageBytes, image.getId().toString()));
+            profileImageDataList.add(new ProfileImageData(imageBytes, image.getId().toString()));
         }
-        return userImageDataList;
+        return profileImageDataList;
     }
 }

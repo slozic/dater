@@ -15,7 +15,6 @@ import java.util.random.RandomGenerator;
 @Service
 @Slf4j
 public class LocalImageStorageService implements ImageStorageService {
-
     @Override
     public String storeImage(final MultipartFile image, final ImageParameters parameters) {
         if (image != null) {

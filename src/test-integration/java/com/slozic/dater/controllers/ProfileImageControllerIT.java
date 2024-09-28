@@ -1,9 +1,9 @@
 package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.slozic.dater.dto.response.userprofile.UserImageCreatedResponse;
-import com.slozic.dater.dto.response.userprofile.UserImageResponse;
-import com.slozic.dater.services.UserImageService;
+import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
+import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
+import com.slozic.dater.services.ProfileImageService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
-class UserImageControllerIT extends IntegrationTest {
+class ProfileImageControllerIT extends IntegrationTest {
 
     private static final String RESOURCES_DATE_TEST_JPG = "src/test-integration/resources/date-test.jpg";
     @Autowired
@@ -35,7 +35,7 @@ class UserImageControllerIT extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private UserImageService userImageService;
+    private ProfileImageService profileImageService;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -62,9 +62,9 @@ class UserImageControllerIT extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        UserImageCreatedResponse userImageCreatedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), UserImageCreatedResponse.class);
-        assertThat(userImageCreatedResponse.imageIds()).size().isEqualTo(3);
-        assertThat(userImageCreatedResponse.userId()).isEqualTo(userId);
+        ProfileImageCreatedResponse profileImageCreatedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ProfileImageCreatedResponse.class);
+        assertThat(profileImageCreatedResponse.imageIds()).size().isEqualTo(3);
+        assertThat(profileImageCreatedResponse.userId()).isEqualTo(userId);
     }
 
     @Test
@@ -74,8 +74,8 @@ class UserImageControllerIT extends IntegrationTest {
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
-        UserImageResponse userImageResponse = userImageService.getUserImages(userId);
-        assertThat(userImageResponse.userImageData().size()).isEqualTo(0);
+        ProfileImageResponse profileImageResponse = profileImageService.getProfileImages(userId);
+        assertThat(profileImageResponse.profileImageData().size()).isEqualTo(0);
 
         Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
         var fileBytes = Files.readAllBytes(path);
@@ -84,17 +84,17 @@ class UserImageControllerIT extends IntegrationTest {
         var multipartFile2 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
         var multipartFile3 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
 
-        userImageService.createUserImages(UUID.fromString(userId), List.of(multipartFile, multipartFile2, multipartFile3));
+        profileImageService.createProfileImages(UUID.fromString(userId), List.of(multipartFile, multipartFile2, multipartFile3));
 
         // when
-        var mvcResultGet = mockMvc.perform(get("/users/{userid}/images", userId)
+        var mvcResultGet = mockMvc.perform(get("/users/images")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        UserImageResponse getUserImageResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), UserImageResponse.class);
-        assertThat(getUserImageResponse.userImageData()).size().isEqualTo(3);
-        assertThat(getUserImageResponse.userId()).isEqualTo(userId);
+        ProfileImageResponse getProfileImageResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), ProfileImageResponse.class);
+        assertThat(getProfileImageResponse.profileImageData()).size().isEqualTo(3);
+        assertThat(getProfileImageResponse.userId()).isEqualTo(userId);
     }
 
 }

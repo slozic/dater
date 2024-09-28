@@ -17,7 +17,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
