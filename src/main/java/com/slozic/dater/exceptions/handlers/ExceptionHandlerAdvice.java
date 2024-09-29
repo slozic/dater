@@ -70,4 +70,14 @@ public class ExceptionHandlerAdvice {
                         .detail(ex.getMessage())
                         .build());
     }
+
+    @ExceptionHandler(UserProfileImageException.class)
+    ResponseEntity<ErrorResponse> handleProfileImageNotFound(final UserProfileImageException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .title("User profile image could not be found")
+                        .detail(ex.getMessage())
+                        .build());
+    }
 }

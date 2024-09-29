@@ -32,4 +32,10 @@ public class ProfileImageController {
         return profileImageService.getProfileImages(authenticatedUser.toString());
     }
 
+    @DeleteMapping("/{imageId}")
+    public Boolean deleteUserProfileImage(@PathVariable("imageId") String imageId) {
+        UUID authenticatedUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        return profileImageService.deleteImage(authenticatedUser.toString(), imageId);
+    }
+
 }

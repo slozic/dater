@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
@@ -41,7 +40,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
-    public void createUserImage_shouldReturnSuccess() throws Exception {
+    public void createUserProfileImage_shouldReturnSuccess() throws Exception {
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
@@ -70,7 +69,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
-    public void getUserImage_shouldReturnSuccess() throws Exception {
+    public void getUserProfileImage_shouldReturnSuccess() throws Exception {
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
@@ -95,6 +94,46 @@ class ProfileImageControllerIT extends IntegrationTest {
         ProfileImageResponse getProfileImageResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), ProfileImageResponse.class);
         assertThat(getProfileImageResponse.profileImageData()).size().isEqualTo(3);
         assertThat(getProfileImageResponse.userId()).isEqualTo(userId);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql"})
+    public void deleteUserProfileImage_shouldReturnSuccess() throws Exception {
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        var multipartFile2 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        var multipartFile3 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        ProfileImageCreatedResponse profileImages = profileImageService.createProfileImages(UUID.fromString(userId), List.of(multipartFile, multipartFile2, multipartFile3));
+
+        // when
+        var mvcResultGet = mockMvc.perform(delete("/users/images/{imageId}", profileImages.imageIds().get(0))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Boolean booleanResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), Boolean.class);
+        assertThat(booleanResponse).isTrue();
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql"})
+    public void deleteUserProfileImage_shouldFailWhenImageDoesNotExist() throws Exception {
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+
+        // when
+        var mvcResultGet = mockMvc.perform(delete("/users/images/{imageId}", UUID.randomUUID())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().is4xxClientError())
+                .andReturn();
     }
 
 }

@@ -5,14 +5,12 @@ import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageData;
 import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
-import com.slozic.dater.exceptions.UserImageException;
+import com.slozic.dater.exceptions.UserProfileImageException;
 import com.slozic.dater.models.UserImage;
 import com.slozic.dater.repositories.ProfileImageRepository;
 import com.slozic.dater.services.images.ImageStorageStrategy;
 import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,34 +20,16 @@ import java.util.UUID;
 
 @Service
 public class ProfileImageService {
-    @Value("${user.images.max-count}")
-    private int MAX_IMAGES_PER_USER_PROFILE;
     @Autowired
     private ImageStorageStrategyFactory imageStorageStrategyFactory;
     @Autowired
     private ProfileImageRepository profileImageRepository;
 
     public ProfileImageCreatedResponse createProfileImages(UUID userId, List<MultipartFile> images) {
-        validateInput(images);
+        getImageStorageStrategy().validate(images);
         List<ProfileImageDto> profileImageDtos = storeImages(userId.toString(), images);
         List<String> imageIds = saveMetaDataAsEntity(profileImageDtos);
         return new ProfileImageCreatedResponse(userId.toString(), imageIds);
-    }
-
-    private void validateInput(List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) {
-            throw new UserImageException("No Images provided.");
-        }
-
-        if (images.size() > MAX_IMAGES_PER_USER_PROFILE) {
-            throw new UserImageException("You can have only up to " + MAX_IMAGES_PER_USER_PROFILE + " images per user profile!");
-        }
-
-        for (MultipartFile image : images) {
-            if (!image.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !image.getContentType().equals(MediaType.IMAGE_PNG_VALUE)) {
-                throw new UserImageException("Unsupported file type " + image.getContentType());
-            }
-        }
     }
 
     private List<ProfileImageDto> storeImages(String userId, List<MultipartFile> images) {
@@ -65,7 +45,7 @@ public class ProfileImageService {
     }
 
     private ImageStorageStrategy getImageStorageStrategy() {
-        ImageStorageStrategy imageStorageStrategy = imageStorageStrategyFactory.getStrategy(ImageCategory.DATE);
+        ImageStorageStrategy imageStorageStrategy = imageStorageStrategyFactory.getStrategy(ImageCategory.USER);
         return imageStorageStrategy;
     }
 
@@ -97,4 +77,15 @@ public class ProfileImageService {
         }
         return profileImageDataList;
     }
+
+    public Boolean deleteImage(String userId, String imageId) {
+        profileImageRepository.findById(UUID.fromString(imageId))
+                .ifPresentOrElse(userImage -> {
+                    profileImageRepository.deleteById(UUID.fromString(imageId));
+                }, () -> {
+                    throw new UserProfileImageException("Problem occurred while deleting the image: " + imageId);
+                });
+        return Boolean.TRUE;
+    }
+
 }

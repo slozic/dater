@@ -43,8 +43,8 @@ user:
   images:
     location: "C:\\Users\\sly-x\\projects\\spring\\dater-images\\user"
     max-count: 3
-    width: 400
-    height: 600
+    width: 600
+    height: 800
     resize-type: jpg
 
 date:

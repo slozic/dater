@@ -12,19 +12,17 @@ import java.util.List;
 
 @Configuration
 public class AppConfig {
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
         config.applyPermitDefaultValues();
         config.setAllowedOrigins(List.of("http://localhost:3000"));
         config.setAllowCredentials(true);
-        config.setAllowedMethods(List.of("GET","PUT", "POST"));
+        config.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

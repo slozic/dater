@@ -30,6 +30,7 @@ public class LocalImageStorageService implements ImageStorageService {
         try (OutputStream os = new FileOutputStream(file)) {
             os.write(image.getBytes());
         } catch (IOException ex) {
+            log.error("Could not store image " + image.getName() + "Reason: " + ex.getMessage());
             throw new FileStorageException("Could not store image " + image.getName() + ". Please try again!", ex);
         }
         return file.getPath();

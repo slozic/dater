@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Component
 public class DateImageStorageStrategy implements ImageStorageStrategy {
 
@@ -31,6 +33,11 @@ public class DateImageStorageStrategy implements ImageStorageStrategy {
     public byte[] loadImage(String imagePath) {
         byte[] imageBytes = imageStorageService.loadImage(imagePath);
         return imageStorageService.resizeImage(imageBytes, getParameters(imagePath));
+    }
+
+    @Override
+    public void validate(List<MultipartFile> images) {
+        // TO BE IMPLEMENTED
     }
 
     private ImageParameters getParameters() {
