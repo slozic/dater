@@ -11,8 +11,8 @@ import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
 import com.slozic.dater.services.images.ImageStorageStrategy;
 import com.slozic.dater.services.images.ImageStorageStrategyFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,15 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class DateEventImageService {
-    @Autowired
-    private DateImageRepository dateImageRepository;
-    @Autowired
-    private DateEventRepository dateEventRepository;
-    @Autowired
-    private ImageStorageStrategyFactory imageStorageStrategyFactory;
+
+    private final DateImageRepository dateImageRepository;
+    private final DateEventRepository dateEventRepository;
+    private final ImageStorageStrategyFactory imageStorageStrategyFactory;
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {

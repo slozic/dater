@@ -41,6 +41,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
     public void createUserProfileImage_shouldReturnSuccess() throws Exception {
+        // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
@@ -61,6 +62,7 @@ class ProfileImageControllerIT extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        // then
         ProfileImageCreatedResponse profileImageCreatedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), ProfileImageCreatedResponse.class);
         assertThat(profileImageCreatedResponse.imageIds()).size().isEqualTo(3);
         assertThat(profileImageCreatedResponse.userId()).isEqualTo(userId);
@@ -70,6 +72,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
     public void getUserProfileImage_shouldReturnSuccess() throws Exception {
+        // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
@@ -91,6 +94,7 @@ class ProfileImageControllerIT extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        // then
         ProfileImageResponse getProfileImageResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), ProfileImageResponse.class);
         assertThat(getProfileImageResponse.profileImageData()).size().isEqualTo(3);
         assertThat(getProfileImageResponse.userId()).isEqualTo(userId);
@@ -100,6 +104,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
     public void deleteUserProfileImage_shouldReturnSuccess() throws Exception {
+        // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 
@@ -118,6 +123,7 @@ class ProfileImageControllerIT extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
+        // then
         Boolean booleanResponse = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), Boolean.class);
         assertThat(booleanResponse).isTrue();
     }
@@ -126,6 +132,7 @@ class ProfileImageControllerIT extends IntegrationTest {
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
     public void deleteUserProfileImage_shouldFailWhenImageDoesNotExist() throws Exception {
+        // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
 

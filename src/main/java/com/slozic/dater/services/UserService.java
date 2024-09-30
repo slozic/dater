@@ -3,6 +3,7 @@ package com.slozic.dater.services;
 import com.slozic.dater.dto.UserDto;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
+import com.slozic.dater.exceptions.UserNotFoundException;
 import com.slozic.dater.models.User;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
@@ -24,7 +25,13 @@ public class UserService {
     public UserDto getCurrentAuthenticatedUser() throws UnauthorizedException {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         final User user = userRepository.findOneById(currentUser)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + currentUser));
+        return UserDto.from(user);
+    }
+
+    public UserDto getUserById(final String userId) throws UnauthorizedException {
+        final User user = userRepository.findOneById(UUID.fromString(userId))
+                .orElseThrow(() -> new UserNotFoundException("User with id not found: " + userId));
         return UserDto.from(user);
     }
 
@@ -41,4 +48,5 @@ public class UserService {
         userRepository.save(user);
         return UserDto.from(user);
     }
+
 }
