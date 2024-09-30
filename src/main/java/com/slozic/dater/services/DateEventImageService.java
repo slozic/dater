@@ -6,8 +6,6 @@ import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageData;
 import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
-import com.slozic.dater.exceptions.DateImageException;
-import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
@@ -15,22 +13,17 @@ import com.slozic.dater.services.images.ImageStorageStrategy;
 import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class DateEventImageService {
-    @Value("${date.images.max-count}")
-    private static final int MAX_IMAGES_PER_DATE = 3;
     @Autowired
     private DateImageRepository dateImageRepository;
     @Autowired
@@ -40,31 +33,13 @@ public class DateEventImageService {
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {
-        Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
-        validateInput(dateId, images, optionalDate);
+        dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
+                new DateEventException("No DateEvents found with id: " + dateId));
+
+        getImageStorageStrategy().validate(images);
         List<DateImageDto> dateImageDtos = storeImages(dateId, images);
         List<String> imageIds = saveMetaDataAsEntity(dateImageDtos);
         return new DateImageCreatedResponse(dateId, imageIds);
-    }
-
-    private void validateInput(String dateId, List<MultipartFile> images, Optional<Date> optionalDate) {
-        if (optionalDate.isEmpty()) {
-            throw new DateEventException("No DateEvents found with id: " + dateId);
-        }
-
-        if (images == null || images.isEmpty()) {
-            throw new DateImageException("No Images provided for Date Event");
-        }
-
-        if (images.size() > MAX_IMAGES_PER_DATE) {
-            throw new DateImageException("You can have only up to " + MAX_IMAGES_PER_DATE + " images per date event!");
-        }
-
-        for (MultipartFile image : images) {
-            if (!image.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !image.getContentType().equals(MediaType.IMAGE_PNG_VALUE)) {
-                throw new DateImageException("Unsupported file type " + image.getContentType());
-            }
-        }
     }
 
     private List<DateImageDto> storeImages(String dateId, List<MultipartFile> images) {

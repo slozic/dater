@@ -1,12 +1,9 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.dto.ImageParameters;
-import org.springframework.web.multipart.MultipartFile;
+public interface ImageStorageService<ImageType, ImageParamType, ReturnType, LoadType> {
+    public ReturnType storeImage(ImageType imageType, ImageParamType parameters);
 
-public interface ImageStorageService {
-    public String storeImage(MultipartFile image, ImageParameters parameters);
+    public LoadType loadImage(String imagePath);
 
-    public byte[] loadImage(String imagePath);
-
-    public byte[] resizeImage(byte[] imageBytes, ImageParameters parameters);
+    public LoadType resizeImage(LoadType loadType, ImageParamType parameters);
 }

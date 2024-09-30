@@ -25,11 +25,11 @@ public class ProfileImageStorageStrategy implements ImageStorageStrategy {
     @Value("${user.images.resize-type}")
     private String imageType;
     @Autowired
-    private ImageStorageService imageStorageService;
+    private ImageStorageService<MultipartFile, ImageParameters, String, byte[]> imageStorageService;
 
     @Override
     public String storeImage(MultipartFile image) {
-        return imageStorageService.storeImage(image, getParameters());
+        return imageStorageService.storeImage(image, getParameters()).toString();
     }
 
     @Override
@@ -54,6 +54,7 @@ public class ProfileImageStorageStrategy implements ImageStorageStrategy {
             }
         }
     }
+
     private ImageParameters getParameters() {
         return new ImageParameters(
                 imageLocation,
