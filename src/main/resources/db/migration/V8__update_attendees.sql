@@ -1,0 +1,1 @@
+ALTER TABLE date_attendees ADD COLUMN soft_deleted BOOLEAN NOT NULL DEFAULT FALSE;

@@ -99,4 +99,24 @@ public class DateAttendeesService {
                 .orElse(JoinDateStatus.NOT_REQUESTED);
         return new DateAttendeeStatusResponse(joinDateStatus, currentUserId.toString(), dateId);
     }
+
+    public DateAttendeeStatusResponse rejectDateAttendeeRequest(String dateId, String attendeeId, UUID currentUser) {
+        rejectAttendee(dateId, attendeeId, currentUser);
+        return new DateAttendeeStatusResponse(JoinDateStatus.REJECTED, attendeeId, dateId);
+    }
+
+    private void rejectAttendee(String dateId, String attendeeId, UUID currentUser) {
+        dateAttendeeRepository.findOneByAttendeeIdAndDateId(UUID.fromString(attendeeId), UUID.fromString(dateId))
+                .ifPresentOrElse(
+                        attendee -> {
+                            if (!attendee.getAttendeeId().equals(currentUser)) {
+                                attendee.setSoftDeleted(true);
+                                dateAttendeeRepository.save(attendee);
+                            }
+                        },
+                        () -> {
+                            throw new AttendeeNotFoundException("Attendee not found for date: " + dateId);
+                        });
+    }
+
 }

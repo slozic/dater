@@ -87,7 +87,7 @@ public class DateAttendeeControllerIT extends IntegrationTest {
             "classpath:fixtures/loadUsers.sql",
             "classpath:fixtures/loadDateEvents.sql",
             "classpath:fixtures/loadDateAttendees.sql"})
-    public void addAttendeeToDate_shouldFailWhenAttendeeExists() throws Exception {
+    public void addAttendeeToDate_shouldFailWhenAttendeeAlreadyExists() throws Exception {
         // given
         String userId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
         String token = jwsBuilder.getJwt(userId);
@@ -133,18 +133,19 @@ public class DateAttendeeControllerIT extends IntegrationTest {
             "classpath:fixtures/loadDateAttendees.sql"})
     public void acceptDateAttendee_shouldReturnSuccess() throws Exception {
         // given
-        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
-        String token = jwsBuilder.getJwt(userId);
+        String currentLoggedUserId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String attendeeId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        String token = jwsBuilder.getJwt(currentLoggedUserId);
         String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
 
         // when
         var mvcResult = mockMvc.perform(
-                        put("/dates/{dateId}/attendees/{userId}", dateId, userId)
+                        put("/dates/{dateId}/attendees/{userId}", dateId, attendeeId)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
         // then
-        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"ACCEPTED\",\"attendeeId\":\"aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"ACCEPTED\",\"attendeeId\":\"6c49abd4-0e82-47f6-bb0c-558c9a890bd4\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
     }
 
@@ -155,13 +156,14 @@ public class DateAttendeeControllerIT extends IntegrationTest {
             "classpath:fixtures/loadDateAttendees.sql"})
     public void acceptDateAttendee_shouldFailWhenAttendeeDoesNotExist() throws Exception {
         // given
-        String userId = UUID.randomUUID().toString();
-        String token = jwsBuilder.getJwt(userId);
+        String currentLoggedUserId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String attendeeId = UUID.randomUUID().toString();
+        String token = jwsBuilder.getJwt(currentLoggedUserId);
         String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
 
         // when
         var mvcResult = mockMvc.perform(
-                        put("/dates/{dateId}/attendees/{userId}", dateId, userId)
+                        put("/dates/{dateId}/attendees/{userId}", dateId, attendeeId)
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -188,7 +190,7 @@ public class DateAttendeeControllerIT extends IntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
         // then
-        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"ACCEPTED\",\"attendeeId\":\"6c49abd4-0e82-47f6-bb0c-558c9a890bd4\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"ON_WAITLIST\",\"attendeeId\":\"6c49abd4-0e82-47f6-bb0c-558c9a890bd4\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
     }
 
     @Test
@@ -210,5 +212,51 @@ public class DateAttendeeControllerIT extends IntegrationTest {
                 .andReturn();
         // then
         assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"NOT_REQUESTED\",\"attendeeId\":\"c041718c-2be3-4ddc-9155-7690bb123333\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
+    public void rejectDateAttendee_shouldReturnSuccess() throws Exception {
+        // given
+        String currentLoggedUserId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String attendeeId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        String token = jwsBuilder.getJwt(currentLoggedUserId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var mvcResult = mockMvc.perform(
+                        delete("/dates/{dateId}/attendees/{userId}", dateId, attendeeId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        // then
+        assertThat(mvcResult.getResponse().getContentAsString()).isEqualTo("{\"joinDateStatus\":\"REJECTED\",\"attendeeId\":\"6c49abd4-0e82-47f6-bb0c-558c9a890bd4\",\"dateId\":\"be62daa9-6cda-45ea-8b0b-4ea15f735e53\"}");
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
+    public void rejectDateAttendee_shouldFailWhenAttendeeDoesNotExist() throws Exception {
+        // given
+        String currentLoggedUserId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String attendeeId = UUID.randomUUID().toString();
+        String token = jwsBuilder.getJwt(currentLoggedUserId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var mvcResult = mockMvc.perform(
+                        delete("/dates/{dateId}/attendees/{userId}", dateId, attendeeId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        // then
+        assertThat(mvcResult.getResolvedException() instanceof AttendeeNotFoundException).isTrue();
+        assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("Attendee not found for date: " + dateId);
     }
 }

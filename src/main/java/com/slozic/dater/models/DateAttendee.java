@@ -27,6 +27,9 @@ public class DateAttendee {
     @Builder.Default
     private Boolean accepted = false;
 
+    @Builder.Default
+    private Boolean softDeleted = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attendeeId", nullable = false, insertable = false, updatable = false)
     private User user;
@@ -51,4 +54,5 @@ public class DateAttendee {
     public int hashCode() {
         return Objects.hash(attendeeId,dateId);
     }
+
 }
