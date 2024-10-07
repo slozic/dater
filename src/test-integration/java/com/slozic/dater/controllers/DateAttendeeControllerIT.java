@@ -41,7 +41,7 @@ public class DateAttendeeControllerIT extends IntegrationTest {
             "classpath:fixtures/loadUsers.sql",
             "classpath:fixtures/loadDateEvents.sql",
             "classpath:fixtures/loadDateAttendees.sql"})
-    public void getDateAttendees_shouldReturnSuccess() throws Exception {
+    public void getDateAttendeeRequests_shouldReturnSuccess() throws Exception {
         // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);
@@ -57,7 +57,7 @@ public class DateAttendeeControllerIT extends IntegrationTest {
         assertThat(mvcResult.getResponse().getStatus()).isEqualTo(200);
         DateAttendeeResponse dateAttendeeResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateAttendeeResponse.class);
         assertThat(dateAttendeeResponse.dateId()).isEqualTo(dateId);
-        assertThat(dateAttendeeResponse.dateAttendees().size()).isEqualTo(2);
+        assertThat(dateAttendeeResponse.dateAttendees().size()).isEqualTo(1);
     }
 
     @Test

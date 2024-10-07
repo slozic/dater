@@ -20,12 +20,12 @@ public class DateAttendeesController {
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @GetMapping
-    public DateAttendeeResponse getDateAttendees(@PathVariable("id") String dateId) {
-        return dateAttendeesService.getAllDateAttendees(dateId);
+    public DateAttendeeResponse getDateAttendeeRequests(@PathVariable("id") String dateId) {
+        return dateAttendeesService.getAllDateAttendeeRequests(dateId);
     }
 
     @GetMapping("/status")
-    public DateAttendeeStatusResponse getMyDateAttendeeStatus(@PathVariable("id") String dateId) {
+    public DateAttendeeStatusResponse getMyAttendeeStatus(@PathVariable("id") String dateId) {
         final UUID currentUserId = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         return dateAttendeesService.getDateAttendeeStatus(dateId, currentUserId);
     }

@@ -6,4 +6,6 @@ public interface ImageStorageService<ImageType, ImageParamType, ReturnType, Load
     public LoadType loadImage(String imagePath);
 
     public LoadType resizeImage(LoadType loadType, ImageParamType parameters);
+
+    void deleteImage(String imagePath);
 }

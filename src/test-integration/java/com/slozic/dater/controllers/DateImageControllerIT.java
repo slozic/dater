@@ -2,6 +2,7 @@ package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
+import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
 import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
@@ -25,8 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
@@ -214,6 +214,38 @@ class DateImageControllerIT extends IntegrationTest {
 
         // then
         assertThat(mvcResultGet.getResponse().getContentLength()).isEqualTo(0);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql"})
+    public void deleteDateEventImage_shouldReturnSuccess() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        var multipartFile2 = new MockMultipartFile("files", "image2.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        DateImageCreatedResponse dateEventImages = dateEventImageService.createDateEventImages(dateId, List.of(multipartFile, multipartFile2));
+        String imageIdToDelete = dateEventImages.imageIds().get(0);
+
+        // when
+        var mvcResult = mockMvc.perform(delete("/dates/{dateId}/images/{imageId}", dateId, imageIdToDelete)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        DateImageDeletedResponse dateImageDeletedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateImageDeletedResponse.class);
+        assertThat(dateImageDeletedResponse.imageId()).isEqualTo(imageIdToDelete);
+        assertThat(dateImageDeletedResponse.dateId()).isEqualTo(dateId);
     }
 
 }

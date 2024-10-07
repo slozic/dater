@@ -27,13 +27,14 @@ public class DateAttendeesService {
     private final DateEventRepository dateEventRepository;
 
     @Transactional
-    public DateAttendeeResponse getAllDateAttendees(String dateId) {
+    public DateAttendeeResponse getAllDateAttendeeRequests(String dateId) {
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
         if (!optionalDate.isPresent()) {
             throw new DateEventException("Date event not found: " + dateId);
         }
 
-        final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByDateId(UUID.fromString(dateId));
+        final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByDateId(UUID.fromString(dateId))
+                .stream().filter(dateAttendee -> !dateAttendee.getAttendeeId().equals(optionalDate.get().getCreatedBy())).collect(Collectors.toList());
         return getDateAttendeeResponse(dateId, dateAttendeesList);
     }
 

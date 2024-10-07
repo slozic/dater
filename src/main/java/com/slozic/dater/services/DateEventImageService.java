@@ -4,8 +4,10 @@ import com.slozic.dater.dto.DateImageDto;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageData;
+import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
 import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.DateImageNotFoundException;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -89,5 +92,22 @@ public class DateEventImageService {
 
     public List<DateImage> getDateEventImageMetaData(final String dateId) {
         return dateImageRepository.findAllByDateId(UUID.fromString(dateId));
+    }
+
+    public DateImageDeletedResponse deleteImageFromDatabaseAndStorage(String dateId, String imageId) {
+        DateImage dateImage = getImageEntity(imageId);
+        getImageStorageStrategy().deleteImage(dateImage.getImagePath());
+        dateImageRepository.delete(dateImage);
+        return new DateImageDeletedResponse(dateId, imageId);
+    }
+
+    private DateImage getImageEntity(String imageId) {
+        Optional<DateImage> optionalDateImage = dateImageRepository.findById(UUID.fromString(imageId));
+
+        if (optionalDateImage.isEmpty()) {
+            throw new DateImageNotFoundException("Date image with id was not found: " + imageId);
+        }
+        DateImage dateImage = optionalDateImage.get();
+        return dateImage;
     }
 }

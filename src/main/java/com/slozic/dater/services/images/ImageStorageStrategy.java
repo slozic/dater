@@ -12,5 +12,5 @@ public interface ImageStorageStrategy {
 
     void validate(List<MultipartFile> images);
 
-
+    void deleteImage(String imagePath);
 }

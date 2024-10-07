@@ -7,10 +7,19 @@ import lombok.Builder;
 @Builder
 public record DateAttendeeDto(String id, String username, JoinDateStatus status) {
     public static DateAttendeeDto from(DateAttendee dateAttendee) {
-        return new DateAttendeeDto(dateAttendee.getAttendeeId().toString(), dateAttendee.getUser().getUsername(), isAccepted(dateAttendee));
+        return new DateAttendeeDto(dateAttendee.getAttendeeId().toString(), dateAttendee.getUser().getUsername(), requestStatus(dateAttendee));
     }
 
-    private static JoinDateStatus isAccepted(DateAttendee dateAttendee) {
-        return dateAttendee.getAccepted() ? JoinDateStatus.ACCEPTED : JoinDateStatus.ON_WAITLIST;
+    private static JoinDateStatus requestStatus(DateAttendee dateAttendee) {
+        JoinDateStatus joinDateStatus;
+        if (dateAttendee.getSoftDeleted()) {
+            joinDateStatus = JoinDateStatus.REJECTED;
+        } else if (dateAttendee.getAccepted()) {
+            joinDateStatus = JoinDateStatus.ACCEPTED;
+        } else {
+            joinDateStatus = JoinDateStatus.ON_WAITLIST;
+        }
+        return joinDateStatus;
     }
+
 }

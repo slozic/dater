@@ -1,6 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
+import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
 import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.services.DateEventImageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,4 +33,10 @@ public class DateImageController {
         DateImageResponse dateImageResponse = dateEventImageService.getDateEventImages(dateId);
         return dateImageResponse;
     }
+
+    @DeleteMapping("/{imageId}")
+    public DateImageDeletedResponse deleteDateEventImage(@PathVariable("id") String dateId, @PathVariable("imageId") String imageId) {
+        return dateEventImageService.deleteImageFromDatabaseAndStorage(dateId, imageId);
+    }
+
 }

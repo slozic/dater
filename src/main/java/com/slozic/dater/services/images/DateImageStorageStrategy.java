@@ -56,6 +56,11 @@ public class DateImageStorageStrategy implements ImageStorageStrategy {
         }
     }
 
+    @Override
+    public void deleteImage(String imagePath) {
+        imageStorageService.deleteImage(imagePath);
+    }
+
     private ImageParameters getParameters() {
         return new ImageParameters(
                 imageLocation,
