@@ -3,6 +3,7 @@ package com.slozic.dater.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
+import com.slozic.dater.dto.response.images.DateImageMetaData;
 import com.slozic.dater.dto.response.images.DateImageResponse;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateImageException;
@@ -60,7 +61,7 @@ class DateImageControllerIT extends IntegrationTest {
         var multipartFile2 = new MockMultipartFile("files", "image2.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
         var multipartFile3 = new MockMultipartFile("files", "image3.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
 
-        List<DateImage> dateEventImageMetaData = dateEventImageService.getDateEventImageMetaData(dateId);
+        List<DateImageMetaData> dateEventImageMetaData = dateEventImageService.getDateEventImageMetaData(dateId);
         assertThat(dateEventImageMetaData).size().isEqualTo(0);
 
         // when
@@ -175,7 +176,7 @@ class DateImageControllerIT extends IntegrationTest {
         String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
 
         // verify there are no image entities associated with date
-        List<DateImage> dateEventImageMetaData = dateEventImageService.getDateEventImageMetaData(dateId);
+        List<DateImageMetaData> dateEventImageMetaData = dateEventImageService.getDateEventImageMetaData(dateId);
         assertThat(dateEventImageMetaData).size().isEqualTo(0);
 
         // insert new images
@@ -236,7 +237,7 @@ class DateImageControllerIT extends IntegrationTest {
 
         DateImageCreatedResponse dateEventImages = dateEventImageService.createDateEventImages(dateId, List.of(multipartFile, multipartFile2));
         String imageIdToDelete = dateEventImages.imageIds().get(0);
-        DateImage imageMetaData = dateEventImageService.getDateEventImageMetaData(dateId).stream().filter(dateImage -> dateImage.getId().toString().equals(imageIdToDelete)).findFirst().get();
+        DateImageMetaData imageMetaData = dateEventImageService.getDateEventImageMetaData(dateId).stream().filter(dateImage -> dateImage.id().equals(imageIdToDelete)).findFirst().get();
 
         // when
         var mvcResult = mockMvc.perform(delete("/dates/{dateId}/images/{imageId}", dateId, imageIdToDelete)
@@ -249,7 +250,7 @@ class DateImageControllerIT extends IntegrationTest {
         DateImageDeletedResponse dateImageDeletedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateImageDeletedResponse.class);
         assertThat(dateImageDeletedResponse.imageId()).isEqualTo(imageIdToDelete);
         assertThat(dateImageDeletedResponse.dateId()).isEqualTo(dateId);
-        assertThat(new File(imageMetaData.getImagePath()).exists()).isFalse();
+        assertThat(new File(imageMetaData.path()).exists()).isFalse();
     }
 
     @Test

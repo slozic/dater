@@ -2,11 +2,11 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.DateImageDto;
 import com.slozic.dater.dto.enums.ImageCategory;
-import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
-import com.slozic.dater.dto.response.images.DateImageData;
-import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
-import com.slozic.dater.dto.response.images.DateImageResponse;
-import com.slozic.dater.exceptions.*;
+import com.slozic.dater.dto.response.images.*;
+import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.DateEventNotFoundException;
+import com.slozic.dater.exceptions.DateImageAccessException;
+import com.slozic.dater.exceptions.DateImageNotFoundException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -45,7 +46,7 @@ public class DateEventImageService {
         return new DateImageCreatedResponse(dateId, imageIds);
     }
 
-    private List<DateImageDto> storeImages(String dateId, List<MultipartFile> images) {
+    private List<DateImageDto> storeImages(final String dateId, final List<MultipartFile> images) {
         List<DateImageDto> dateImageDtoList = new ArrayList<>();
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
@@ -82,7 +83,7 @@ public class DateEventImageService {
         return new DateImageResponse(dateImagesDataList, dateId);
     }
 
-    private List<DateImageData> loadImagesIntoDto(List<DateImage> dateImageList) {
+    private List<DateImageData> loadImagesIntoDto(final List<DateImage> dateImageList) {
         List<DateImageData> dateImageDataList = new ArrayList<>();
         for (DateImage image : dateImageList) {
             byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
@@ -91,11 +92,19 @@ public class DateEventImageService {
         return dateImageDataList;
     }
 
-    public List<DateImage> getDateEventImageMetaData(final String dateId) {
-        return dateImageRepository.findAllByDateId(UUID.fromString(dateId));
+    public List<DateImageMetaData> getDateEventImageMetaData(final String dateId) {
+        List<DateImage> dateImageList = dateImageRepository.findAllByDateId(UUID.fromString(dateId));
+        return getDateImageMetaDataList(dateImageList);
     }
 
-    public DateImageDeletedResponse deleteImageFromDatabaseAndStorage(String dateId, String imageId) {
+    private List<DateImageMetaData> getDateImageMetaDataList(final List<DateImage> dateImageList) {
+        return dateImageList.stream()
+                .map(dateImage -> new DateImageMetaData(dateImage.getId().toString(), dateImage.getImagePath(), dateImage.getDateId().toString(), dateImage.getImageSize()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public DateImageDeletedResponse deleteImageFromDatabaseAndStorage(final String dateId, final String imageId) {
         validateUserDateEventPermissions(dateId);
         DateImage dateImage = getImageEntity(imageId);
         getImageStorageStrategy().deleteImage(dateImage.getImagePath());
@@ -121,14 +130,22 @@ public class DateEventImageService {
         if (optionalDateImage.isEmpty()) {
             throw new DateImageNotFoundException("Date image with id was not found: " + imageId);
         }
-        DateImage dateImage = optionalDateImage.get();
-        return dateImage;
+        return optionalDateImage.get();
     }
 
-    public void deleteAllImages(String dateId) {
-        List<DateImage> dateImageList = dateImageRepository.findAllByDateId(UUID.fromString(dateId));
-        for (DateImage image : dateImageList){
-            deleteImageFromDatabaseAndStorage(dateId, image.getId().toString());
-        }
+    @Transactional
+    public void deleteAllImages(final Date dateEvent) {
+        List<DateImage> dateImageList = dateImageRepository.findAllByDateId(dateEvent.getId());
+        deleteImagesFromDatabaseAndStorage(dateEvent.getId().toString(), dateImageList);
+    }
+
+    private DateImageDeletedResponseList deleteImagesFromDatabaseAndStorage(final String dateId, final List<DateImage> dateImageList) {
+        dateImageList.forEach(dateImage -> getImageStorageStrategy()
+                .deleteImage(dateImage.getImagePath()));
+        dateImageRepository.deleteAllInBatch(dateImageList);
+
+        return new DateImageDeletedResponseList(dateId, dateImageList.stream()
+                .map(dateImage -> dateImage.getId().toString())
+                .collect(Collectors.toList()));
     }
 }

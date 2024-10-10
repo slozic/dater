@@ -8,7 +8,6 @@ import com.slozic.dater.dto.response.dates.DateEventListData;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.dto.response.dates.DateEventResponse;
 import com.slozic.dater.exceptions.DateEventAccessPermissionException;
-import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.exceptions.DateEventNotFoundException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
@@ -36,7 +35,6 @@ public class DateEventService {
     private final DateEventRepository dateEventRepository;
     private final DateAttendeesService dateAttendeesService;
     private final DateEventImageService dateEventImageService;
-
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Transactional(readOnly = true)
@@ -98,8 +96,9 @@ public class DateEventService {
     }
 
     @Transactional
-    public DateEventCreatedResponse createDateEventWithDefaultAttendee(final CreateDateEventRequest request, String userId) {
-        final Date dateCreated = saveDateEvent(request, userId);
+    public DateEventCreatedResponse createDateEventWithDefaultAttendee(final CreateDateEventRequest request) {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        final Date dateCreated = saveDateEvent(request, currentUser.toString());
         dateAttendeesService.createDefaultDateAttendee(dateCreated);
         return new DateEventCreatedResponse(dateCreated.getId().toString());
     }
@@ -115,19 +114,21 @@ public class DateEventService {
         return dateEventRepository.save(date);
     }
 
+    @Transactional
     public void deleteDateEvent(final String dateId) {
-        validateUserDatePermissions(dateId);
-        dateEventImageService.deleteAllImages(dateId);
-        dateAttendeesService.deleteAllAttendees(dateId);
+        Date dateEvent = validateUserDatePermissions(dateId);
+        dateEventImageService.deleteAllImages(dateEvent);
+        dateAttendeesService.deleteAllAttendees(dateEvent);
         dateEventRepository.deleteById(UUID.fromString(dateId));
     }
 
-    private void validateUserDatePermissions(String dateId) {
+    private Date validateUserDatePermissions(String dateId) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() -> new DateEventNotFoundException("Date event was not found: " + dateId));
 
         if(!dateEvent.getCreatedBy().equals(currentUser)){
             throw new DateEventAccessPermissionException("User does have permission to delete the date event: " + dateId);
         }
+        return dateEvent;
     }
 }

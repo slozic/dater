@@ -56,8 +56,7 @@ public class DateEventController {
 
     @PostMapping
     public DateEventCreatedResponse createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
-        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest, currentUser.toString());
+        return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest);
     }
 
     @DeleteMapping("/{id}")

@@ -83,7 +83,7 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
         }
 
         if (!isDeleted) {
-            throw new RuntimeException("Could not delete file under the path: " + imagePath);
+            log.error("Could not delete file under the path ", imagePath);
         }
     }
 }

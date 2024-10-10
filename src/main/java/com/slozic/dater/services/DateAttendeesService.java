@@ -125,7 +125,7 @@ public class DateAttendeesService {
     }
 
     @Transactional
-    public void deleteAllAttendees(String dateId) {
-        dateAttendeeRepository.deleteAllByIdDateId(UUID.fromString(dateId));
+    public void deleteAllAttendees(Date date) {
+        dateAttendeeRepository.deleteAllByIdDateId(date.getId());
     }
 }

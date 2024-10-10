@@ -23,13 +23,10 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DateAttendeeServiceTest {
-
     @InjectMocks
     private DateAttendeesService dateAttendeesService;
-
     @Mock
     private DateAttendeeRepository dateAttendeeRepository;
-
     @Mock
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
