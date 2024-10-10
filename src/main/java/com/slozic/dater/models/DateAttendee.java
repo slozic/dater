@@ -15,13 +15,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder(toBuilder = true)
-@IdClass(DateAttendeeId.class)
 public class DateAttendee {
-    @Id
-    private UUID attendeeId;
-
-    @Id
-    private UUID dateId;
+    @EmbeddedId
+    private DateAttendeeId id;
 
     @NotNull
     @Builder.Default
@@ -37,22 +33,5 @@ public class DateAttendee {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dateId", nullable = false, insertable = false, updatable = false)
     private Date date;
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
-            return false;
-        }
-        final DateAttendee dateAttendee = (DateAttendee) o;
-        return Objects.equals(attendeeId, dateAttendee.attendeeId) && Objects.equals(dateId, dateAttendee.dateId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(attendeeId,dateId);
-    }
 
 }

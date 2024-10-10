@@ -7,10 +7,13 @@ import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListData;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.dto.response.dates.DateEventResponse;
+import com.slozic.dater.exceptions.DateEventAccessPermissionException;
 import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.DateEventNotFoundException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,13 +35,16 @@ import java.util.stream.Collectors;
 public class DateEventService {
     private final DateEventRepository dateEventRepository;
     private final DateAttendeesService dateAttendeesService;
+    private final DateEventImageService dateEventImageService;
+
+    private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Transactional(readOnly = true)
     public DateEventListResponse getDateEvents(DateQueryParameters dateQueryParameters, UUID currentUser) {
         List<Date> dateList = filterDatesByParameters(dateQueryParameters, currentUser);
         return mapToListResponse(dateList);
     }
-    
+
     private List<Date> filterDatesByParameters(DateQueryParameters dateQueryParameters, UUID currentUser) {
         List<Date> dateList = new ArrayList<>();
         DateFilter dateFilter = DateFilter.fromString(dateQueryParameters.filter());
@@ -74,7 +80,7 @@ public class DateEventService {
     @Transactional(readOnly = true)
     public DateEventResponse getDateEvent(String dateId) throws UnauthorizedException {
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
-                .orElseThrow(() -> new DateEventException("No date event found: " + dateId));
+                .orElseThrow(() -> new DateEventNotFoundException("No date event found: " + dateId));
         return mapEntityToDto().apply(dateEvent);
     }
 
@@ -109,4 +115,19 @@ public class DateEventService {
         return dateEventRepository.save(date);
     }
 
+    public void deleteDateEvent(final String dateId) {
+        validateUserDatePermissions(dateId);
+        dateEventImageService.deleteAllImages(dateId);
+        dateAttendeesService.deleteAllAttendees(dateId);
+        dateEventRepository.deleteById(UUID.fromString(dateId));
+    }
+
+    private void validateUserDatePermissions(String dateId) {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() -> new DateEventNotFoundException("Date event was not found: " + dateId));
+
+        if(!dateEvent.getCreatedBy().equals(currentUser)){
+            throw new DateEventAccessPermissionException("User does have permission to delete the date event: " + dateId);
+        }
+    }
 }

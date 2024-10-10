@@ -6,11 +6,12 @@ import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageData;
 import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
 import com.slozic.dater.dto.response.images.DateImageResponse;
-import com.slozic.dater.exceptions.DateEventException;
-import com.slozic.dater.exceptions.DateImageNotFoundException;
+import com.slozic.dater.exceptions.*;
+import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
+import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.images.ImageStorageStrategy;
 import com.slozic.dater.services.images.ImageStorageStrategyFactory;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +29,10 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class DateEventImageService {
-
     private final DateImageRepository dateImageRepository;
     private final DateEventRepository dateEventRepository;
     private final ImageStorageStrategyFactory imageStorageStrategyFactory;
+    private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {
@@ -95,10 +96,23 @@ public class DateEventImageService {
     }
 
     public DateImageDeletedResponse deleteImageFromDatabaseAndStorage(String dateId, String imageId) {
+        validateUserDateEventPermissions(dateId);
         DateImage dateImage = getImageEntity(imageId);
         getImageStorageStrategy().deleteImage(dateImage.getImagePath());
         dateImageRepository.delete(dateImage);
         return new DateImageDeletedResponse(dateId, imageId);
+    }
+
+    private void validateUserDateEventPermissions(String dateId) {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
+        if (optionalDate.isEmpty()) {
+            throw new DateEventNotFoundException("Date event not found: " + dateId);
+        }
+
+        if (!optionalDate.get().getCreatedBy().equals(currentUser)) {
+            throw new DateImageAccessException("User does have permission to delete the date image");
+        }
     }
 
     private DateImage getImageEntity(String imageId) {
@@ -109,5 +123,12 @@ public class DateEventImageService {
         }
         DateImage dateImage = optionalDateImage.get();
         return dateImage;
+    }
+
+    public void deleteAllImages(String dateId) {
+        List<DateImage> dateImageList = dateImageRepository.findAllByDateId(UUID.fromString(dateId));
+        for (DateImage image : dateImageList){
+            deleteImageFromDatabaseAndStorage(dateId, image.getId().toString());
+        }
     }
 }

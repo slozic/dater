@@ -60,4 +60,9 @@ public class DateEventController {
         return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest, currentUser.toString());
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteDateEvent(@PathVariable("id") final String dateId) throws UnauthorizedException {
+        dateEventService.deleteDateEvent(dateId);
+    }
+
 }

@@ -19,6 +19,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -234,6 +236,7 @@ class DateImageControllerIT extends IntegrationTest {
 
         DateImageCreatedResponse dateEventImages = dateEventImageService.createDateEventImages(dateId, List.of(multipartFile, multipartFile2));
         String imageIdToDelete = dateEventImages.imageIds().get(0);
+        DateImage imageMetaData = dateEventImageService.getDateEventImageMetaData(dateId).stream().filter(dateImage -> dateImage.getId().toString().equals(imageIdToDelete)).findFirst().get();
 
         // when
         var mvcResult = mockMvc.perform(delete("/dates/{dateId}/images/{imageId}", dateId, imageIdToDelete)
@@ -246,6 +249,33 @@ class DateImageControllerIT extends IntegrationTest {
         DateImageDeletedResponse dateImageDeletedResponse = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), DateImageDeletedResponse.class);
         assertThat(dateImageDeletedResponse.imageId()).isEqualTo(imageIdToDelete);
         assertThat(dateImageDeletedResponse.dateId()).isEqualTo(dateId);
+        assertThat(new File(imageMetaData.getImagePath()).exists()).isFalse();
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql"})
+    public void deleteDateEventImage_shouldFailWhenUserIsNotDateCreator() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateIdFromOtherUser = "c7404d30-1edf-4334-97b8-b03c668b70b9";
+
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        DateImageCreatedResponse dateEventImages = dateEventImageService.createDateEventImages(dateIdFromOtherUser, List.of(multipartFile));
+        String imageIdToDelete = dateEventImages.imageIds().get(0);
+
+        // when
+        mockMvc.perform(delete("/dates/{dateId}/images/{imageId}", dateIdFromOtherUser, imageIdToDelete)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof DateImageException))
+                .andReturn();
+        // then
     }
 
 }

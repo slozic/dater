@@ -5,6 +5,7 @@ import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.DateEventNotFoundException;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.services.DateEventService;
 import com.slozic.dater.testconfig.IntegrationTest;
@@ -22,8 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import(JwsBuilder.class)
@@ -155,7 +155,7 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        assertThat(mvcResult.getResolvedException().getClass()).isEqualTo(DateEventException.class);
+        assertThat(mvcResult.getResolvedException().getClass()).isEqualTo(DateEventNotFoundException.class);
     }
 
     @NotNull
@@ -166,5 +166,28 @@ public class DateEventControllerIT extends IntegrationTest {
                 "location",
                 "2024-01-29T20:00");
         return createDateEventRequest;
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
+    public void deleteDateEvent_shouldReturnSuccess() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var mvcResult = mockMvc.perform(delete("/dates/{id}", dateId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        //assertThat(dateEventService.getDateEvent(dateId)).isEqualTo(DateEventNotFoundException.class);
+        //assertThat(dateEventService.getDateEvent(dateId)).isEqualTo(DateEventNotFoundException.class);
     }
 }

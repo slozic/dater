@@ -36,6 +36,7 @@ public class DateImageController {
 
     @DeleteMapping("/{imageId}")
     public DateImageDeletedResponse deleteDateEventImage(@PathVariable("id") String dateId, @PathVariable("imageId") String imageId) {
+
         return dateEventImageService.deleteImageFromDatabaseAndStorage(dateId, imageId);
     }
 

@@ -7,7 +7,7 @@ import lombok.Builder;
 @Builder
 public record DateAttendeeDto(String id, String username, JoinDateStatus status) {
     public static DateAttendeeDto from(DateAttendee dateAttendee) {
-        return new DateAttendeeDto(dateAttendee.getAttendeeId().toString(), dateAttendee.getUser().getUsername(), requestStatus(dateAttendee));
+        return new DateAttendeeDto(dateAttendee.getId().getAttendeeId().toString(), dateAttendee.getUser().getUsername(), requestStatus(dateAttendee));
     }
 
     private static JoinDateStatus requestStatus(DateAttendee dateAttendee) {

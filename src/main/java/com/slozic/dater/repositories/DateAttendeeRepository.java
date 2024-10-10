@@ -10,13 +10,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface DateAttendeeRepository extends JpaRepository<DateAttendee, DateAttendeeId> {
-    List<DateAttendee> findAllByDateId(UUID dateId);
+    List<DateAttendee> findAllByIdDateId(UUID dateId);
 
-    Optional<DateAttendee> findOneByAttendeeIdAndDateId(UUID attendeeId, UUID dateId);
+    Optional<DateAttendee> findOneById(DateAttendeeId dateAttendeeId);
 
     @Query(nativeQuery = false, value = " select da from DateAttendee da " +
             " left join fetch da.user u " +
             " left join fetch da.date d " +
-            " where da.attendeeId = :id ")
+            " where da.id.attendeeId = :id ")
     List<DateAttendee> findAllCreatedBySpecificUser(UUID id);
+
+    void deleteAllByIdDateId(UUID dateId);
 }

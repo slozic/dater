@@ -2,7 +2,9 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.exceptions.AttendeeNotFoundException;
 import com.slozic.dater.models.DateAttendee;
+import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.security.JwtAuthenticatedUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +30,9 @@ public class DateAttendeeServiceTest {
     @Mock
     private DateAttendeeRepository dateAttendeeRepository;
 
+    @Mock
+    private JwtAuthenticatedUserService jwtAuthenticatedUserService;
+
     @Test
     public void acceptAttendeeRequest_shouldWorkWithSuccess() {
         // given
@@ -36,13 +41,13 @@ public class DateAttendeeServiceTest {
         UUID currentUser = UUID.randomUUID();
 
         Optional<DateAttendee> optionalDateAttendee = Optional.of(DateAttendee.builder()
-                .attendeeId(userId)
-                .dateId(dateId)
+                .id(new DateAttendeeId(dateId, userId))
                 .build());
-        when(dateAttendeeRepository.findOneByAttendeeIdAndDateId(userId, dateId)).thenReturn(optionalDateAttendee);
+        when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
+        when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(optionalDateAttendee);
 
         // when
-        dateAttendeesService.acceptAttendeeRequest(dateId.toString(), userId.toString(), currentUser);
+        dateAttendeesService.acceptAttendeeRequest(dateId.toString(), userId.toString());
 
         // then
         Mockito.verify(dateAttendeeRepository, times(1)).save(optionalDateAttendee.get());
@@ -56,12 +61,13 @@ public class DateAttendeeServiceTest {
         UUID userId = UUID.randomUUID();
         UUID currentUser = UUID.randomUUID();
 
-        when(dateAttendeeRepository.findOneByAttendeeIdAndDateId(userId, dateId)).thenReturn(Optional.empty());
+        when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
+        when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(Optional.empty());
 
         // when
         assertThrows(AttendeeNotFoundException.class,
                 () -> dateAttendeesService.acceptAttendeeRequest(
-                        dateId.toString(), userId.toString(), currentUser)
+                        dateId.toString(), userId.toString())
         );
 
         // then

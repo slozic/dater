@@ -39,14 +39,12 @@ public class DateAttendeesController {
     @PutMapping("/{userId}")
     public DateAttendeeStatusResponse acceptDateAttendee(@PathVariable("id") String dateId, @PathVariable("userId") String userId)
             throws UnauthorizedException {
-        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return dateAttendeesService.acceptAttendeeRequest(dateId, userId, currentUser);
+        return dateAttendeesService.acceptAttendeeRequest(dateId, userId);
     }
 
     @DeleteMapping("/{userId}")
     public DateAttendeeStatusResponse rejectDateAttendee(@PathVariable("id") String dateId, @PathVariable("userId") String attendeeId)
             throws UnauthorizedException {
-        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return dateAttendeesService.rejectDateAttendeeRequest(dateId, attendeeId, currentUser);
+        return dateAttendeesService.rejectDateAttendeeRequest(dateId, attendeeId);
     }
 }

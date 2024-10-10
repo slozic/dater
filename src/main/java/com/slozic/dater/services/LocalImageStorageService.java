@@ -76,7 +76,11 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
     @Override
     public void deleteImage(String imagePath) {
         File file = new File(imagePath);
-        boolean isDeleted = file.delete();
+        boolean isDeleted = false;
+
+        if (file.exists()) {
+            isDeleted = file.delete();
+        }
 
         if (!isDeleted) {
             throw new RuntimeException("Could not delete file under the path: " + imagePath);

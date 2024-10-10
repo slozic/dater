@@ -9,8 +9,10 @@ import com.slozic.dater.exceptions.AttendeeNotFoundException;
 import com.slozic.dater.exceptions.DateEventException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
+import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,8 @@ public class DateAttendeesService {
     private final DateAttendeeRepository dateAttendeeRepository;
     private final DateEventRepository dateEventRepository;
 
+    private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
+
     @Transactional
     public DateAttendeeResponse getAllDateAttendeeRequests(String dateId) {
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
@@ -33,8 +37,8 @@ public class DateAttendeesService {
             throw new DateEventException("Date event not found: " + dateId);
         }
 
-        final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByDateId(UUID.fromString(dateId))
-                .stream().filter(dateAttendee -> !dateAttendee.getAttendeeId().equals(optionalDate.get().getCreatedBy())).collect(Collectors.toList());
+        final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByIdDateId(UUID.fromString(dateId))
+                .stream().filter(dateAttendee -> !dateAttendee.getId().getAttendeeId().equals(optionalDate.get().getCreatedBy())).collect(Collectors.toList());
         return getDateAttendeeResponse(dateId, dateAttendeesList);
     }
 
@@ -47,8 +51,7 @@ public class DateAttendeesService {
 
     public DateAttendee createDefaultDateAttendee(Date dateCreated) {
         DateAttendee dateAttendee = DateAttendee.builder()
-                .dateId(dateCreated.getId())
-                .attendeeId(dateCreated.getCreatedBy())
+                .id(new DateAttendeeId(dateCreated.getId(), dateCreated.getCreatedBy()))
                 .accepted(true)
                 .build();
         return dateAttendeeRepository.save(dateAttendee);
@@ -63,28 +66,28 @@ public class DateAttendeesService {
     }
 
     private void createNewDateAttendee(String dateId, UUID currentUserId) {
-        dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUserId, UUID.fromString(dateId))
+        dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
                 .ifPresentOrElse(
                         attendee -> {
                             throw new AttendeeAlreadyExistsException("Attendee already requested to join date: " + dateId);
                         },
                         () -> dateAttendeeRepository.save(DateAttendee.builder()
-                                .dateId(UUID.fromString(dateId))
-                                .attendeeId(currentUserId)
+                                .id(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
                                 .build()));
     }
 
     @Transactional
-    public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId, UUID currentUser) {
+    public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId) {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         acceptDateAttendee(dateId, userId, currentUser);
         return new DateAttendeeStatusResponse(JoinDateStatus.ACCEPTED, userId, dateId);
     }
 
     private void acceptDateAttendee(String dateId, String userId, UUID currentUser) {
-        dateAttendeeRepository.findOneByAttendeeIdAndDateId(UUID.fromString(userId), UUID.fromString(dateId))
+        dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), UUID.fromString(userId)))
                 .ifPresentOrElse(
                         attendee -> {
-                            if (!attendee.getAttendeeId().equals(currentUser)) {
+                            if (!attendee.getId().getAttendeeId().equals(currentUser)) {
                                 attendee.setAccepted(true);
                                 dateAttendeeRepository.save(attendee);
                             }
@@ -95,22 +98,23 @@ public class DateAttendeesService {
     }
 
     public DateAttendeeStatusResponse getDateAttendeeStatus(String dateId, UUID currentUserId) {
-        JoinDateStatus joinDateStatus = dateAttendeeRepository.findOneByAttendeeIdAndDateId(currentUserId, UUID.fromString(dateId))
+        JoinDateStatus joinDateStatus = dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
                 .map(dateAttendee -> dateAttendee.getAccepted() ? JoinDateStatus.ACCEPTED : JoinDateStatus.ON_WAITLIST)
                 .orElse(JoinDateStatus.NOT_REQUESTED);
         return new DateAttendeeStatusResponse(joinDateStatus, currentUserId.toString(), dateId);
     }
 
-    public DateAttendeeStatusResponse rejectDateAttendeeRequest(String dateId, String attendeeId, UUID currentUser) {
+    public DateAttendeeStatusResponse rejectDateAttendeeRequest(String dateId, String attendeeId) {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         rejectAttendee(dateId, attendeeId, currentUser);
         return new DateAttendeeStatusResponse(JoinDateStatus.REJECTED, attendeeId, dateId);
     }
 
     private void rejectAttendee(String dateId, String attendeeId, UUID currentUser) {
-        dateAttendeeRepository.findOneByAttendeeIdAndDateId(UUID.fromString(attendeeId), UUID.fromString(dateId))
+        dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), UUID.fromString(attendeeId)))
                 .ifPresentOrElse(
                         attendee -> {
-                            if (!attendee.getAttendeeId().equals(currentUser)) {
+                            if (!attendee.getId().getAttendeeId().equals(currentUser)) {
                                 attendee.setSoftDeleted(true);
                                 dateAttendeeRepository.save(attendee);
                             }
@@ -120,4 +124,8 @@ public class DateAttendeesService {
                         });
     }
 
+    @Transactional
+    public void deleteAllAttendees(String dateId) {
+        dateAttendeeRepository.deleteAllByIdDateId(UUID.fromString(dateId));
+    }
 }
