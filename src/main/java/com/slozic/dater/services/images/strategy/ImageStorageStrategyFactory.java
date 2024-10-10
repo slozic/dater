@@ -1,4 +1,4 @@
-package com.slozic.dater.services.images;
+package com.slozic.dater.services.images.strategy;
 
 import com.slozic.dater.dto.enums.ImageCategory;
 import lombok.RequiredArgsConstructor;

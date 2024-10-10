@@ -1,10 +1,11 @@
 package com.slozic.dater.services;
 
-import com.slozic.dater.exceptions.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
+import com.slozic.dater.services.attendees.DateAttendeesService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

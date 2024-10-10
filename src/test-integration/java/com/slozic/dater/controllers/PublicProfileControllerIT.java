@@ -2,8 +2,8 @@ package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.dto.response.PublicProfileResponse;
-import com.slozic.dater.services.ProfileImageService;
-import com.slozic.dater.services.PublicProfileService;
+import com.slozic.dater.services.images.ProfileImageService;
+import com.slozic.dater.services.user.PublicProfileService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
 import org.junit.jupiter.api.Test;

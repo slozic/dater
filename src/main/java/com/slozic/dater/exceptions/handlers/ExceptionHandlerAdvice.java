@@ -1,6 +1,11 @@
 package com.slozic.dater.exceptions.handlers;
 
 import com.slozic.dater.exceptions.*;
+import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventException;
+import com.slozic.dater.exceptions.dateimage.DateImageException;
+import com.slozic.dater.exceptions.user.UserNotFoundException;
+import com.slozic.dater.exceptions.user.UserProfileImageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

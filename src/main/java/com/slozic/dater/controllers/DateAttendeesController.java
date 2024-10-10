@@ -4,7 +4,7 @@ import com.slozic.dater.dto.response.attendees.DateAttendeeResponse;
 import com.slozic.dater.dto.response.attendees.DateAttendeeStatusResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.DateAttendeesService;
+import com.slozic.dater.services.attendees.DateAttendeesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

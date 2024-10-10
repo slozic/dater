@@ -2,12 +2,14 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
-import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.dateevent.DateEventException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
+import com.slozic.dater.services.attendees.DateAttendeesService;
+import com.slozic.dater.services.dateevent.DateEventService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -1,4 +1,4 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.images;
 
 public interface ImageStorageService<ImageType, ImageParamType, ReturnType, LoadType> {
     public ReturnType storeImage(ImageType imageType, ImageParamType parameters);

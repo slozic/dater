@@ -1,4 +1,4 @@
-package com.slozic.dater.services.images;
+package com.slozic.dater.services.images.strategy;
 
 import org.springframework.web.multipart.MultipartFile;
 

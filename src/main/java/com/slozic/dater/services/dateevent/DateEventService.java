@@ -1,4 +1,4 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.dateevent;
 
 import com.slozic.dater.controllers.params.DateQueryParameters;
 import com.slozic.dater.dto.enums.DateFilter;
@@ -7,12 +7,14 @@ import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListData;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.dto.response.dates.DateEventResponse;
-import com.slozic.dater.exceptions.DateEventAccessPermissionException;
-import com.slozic.dater.exceptions.DateEventNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
+import com.slozic.dater.exceptions.dateevent.DateEventNotFoundException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
+import com.slozic.dater.services.attendees.DateAttendeesService;
+import com.slozic.dater.services.images.DateEventImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

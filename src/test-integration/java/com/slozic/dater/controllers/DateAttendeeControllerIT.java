@@ -2,11 +2,11 @@ package com.slozic.dater.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slozic.dater.dto.response.attendees.DateAttendeeResponse;
-import com.slozic.dater.exceptions.AttendeeAlreadyExistsException;
-import com.slozic.dater.exceptions.AttendeeNotFoundException;
-import com.slozic.dater.exceptions.DateEventException;
+import com.slozic.dater.exceptions.attendee.AttendeeAlreadyExistsException;
+import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.DateAttendeesService;
+import com.slozic.dater.services.attendees.DateAttendeesService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,9 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.user;
 
 import com.slozic.dater.dto.UserDto;
 import com.slozic.dater.dto.response.PublicProfileResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
+import com.slozic.dater.services.images.ProfileImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

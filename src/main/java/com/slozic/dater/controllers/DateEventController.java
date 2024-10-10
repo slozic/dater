@@ -7,7 +7,7 @@ import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.dto.response.dates.DateEventResponse;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.DateEventService;
+import com.slozic.dater.services.dateevent.DateEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

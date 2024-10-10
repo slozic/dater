@@ -1,7 +1,8 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.ImageParameters;
 import com.slozic.dater.exceptions.FileStorageException;
+import com.slozic.dater.services.images.ImageStorageService;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;

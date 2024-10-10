@@ -1,4 +1,4 @@
-package com.slozic.dater.exceptions;
+package com.slozic.dater.exceptions.dateimage;
 
 public class DateImageNotFoundException extends DateImageException {
     public DateImageNotFoundException(String message) {

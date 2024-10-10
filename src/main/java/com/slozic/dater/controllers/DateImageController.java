@@ -3,7 +3,7 @@ package com.slozic.dater.controllers;
 import com.slozic.dater.dto.response.images.DateImageCreatedResponse;
 import com.slozic.dater.dto.response.images.DateImageDeletedResponse;
 import com.slozic.dater.dto.response.images.DateImageResponse;
-import com.slozic.dater.services.DateEventImageService;
+import com.slozic.dater.services.images.DateEventImageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

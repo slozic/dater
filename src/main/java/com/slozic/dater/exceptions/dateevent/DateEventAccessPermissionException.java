@@ -1,4 +1,4 @@
-package com.slozic.dater.exceptions;
+package com.slozic.dater.exceptions.dateevent;
 
 public class DateEventAccessPermissionException extends DateEventException {
     public DateEventAccessPermissionException(String message) {

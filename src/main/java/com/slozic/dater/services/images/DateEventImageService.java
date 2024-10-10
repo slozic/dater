@@ -1,19 +1,19 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.DateImageDto;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.images.*;
-import com.slozic.dater.exceptions.DateEventException;
-import com.slozic.dater.exceptions.DateEventNotFoundException;
-import com.slozic.dater.exceptions.DateImageAccessException;
-import com.slozic.dater.exceptions.DateImageNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventException;
+import com.slozic.dater.exceptions.dateevent.DateEventNotFoundException;
+import com.slozic.dater.exceptions.dateimage.DateImageAccessException;
+import com.slozic.dater.exceptions.dateimage.DateImageNotFoundException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateImage;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.DateImageRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.images.ImageStorageStrategy;
-import com.slozic.dater.services.images.ImageStorageStrategyFactory;
+import com.slozic.dater.services.images.strategy.ImageStorageStrategy;
+import com.slozic.dater.services.images.strategy.ImageStorageStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

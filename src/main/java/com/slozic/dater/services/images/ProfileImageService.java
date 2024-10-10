@@ -1,15 +1,15 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.ProfileImageDto;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageData;
 import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
-import com.slozic.dater.exceptions.UserProfileImageException;
+import com.slozic.dater.exceptions.user.UserProfileImageException;
 import com.slozic.dater.models.UserImage;
 import com.slozic.dater.repositories.ProfileImageRepository;
-import com.slozic.dater.services.images.ImageStorageStrategy;
-import com.slozic.dater.services.images.ImageStorageStrategyFactory;
+import com.slozic.dater.services.images.strategy.ImageStorageStrategy;
+import com.slozic.dater.services.images.strategy.ImageStorageStrategyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

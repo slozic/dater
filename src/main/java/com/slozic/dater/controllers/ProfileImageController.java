@@ -3,7 +3,7 @@ package com.slozic.dater.controllers;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
-import com.slozic.dater.services.ProfileImageService;
+import com.slozic.dater.services.images.ProfileImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

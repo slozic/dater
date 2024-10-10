@@ -1,7 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.response.PublicProfileResponse;
-import com.slozic.dater.services.PublicProfileService;
+import com.slozic.dater.services.user.PublicProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;

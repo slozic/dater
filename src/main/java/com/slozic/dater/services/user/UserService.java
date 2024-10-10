@@ -1,9 +1,9 @@
-package com.slozic.dater.services;
+package com.slozic.dater.services.user;
 
 import com.slozic.dater.dto.UserDto;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
-import com.slozic.dater.exceptions.UserNotFoundException;
+import com.slozic.dater.exceptions.user.UserNotFoundException;
 import com.slozic.dater.models.User;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;

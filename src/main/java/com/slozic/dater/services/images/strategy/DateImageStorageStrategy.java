@@ -1,8 +1,8 @@
-package com.slozic.dater.services.images;
+package com.slozic.dater.services.images.strategy;
 
 import com.slozic.dater.dto.ImageParameters;
-import com.slozic.dater.exceptions.DateImageException;
-import com.slozic.dater.services.ImageStorageService;
+import com.slozic.dater.exceptions.dateimage.DateImageException;
+import com.slozic.dater.services.images.ImageStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;

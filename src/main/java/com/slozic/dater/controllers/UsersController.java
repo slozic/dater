@@ -3,7 +3,7 @@ package com.slozic.dater.controllers;
 import com.slozic.dater.dto.UserDto;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
-import com.slozic.dater.services.UserService;
+import com.slozic.dater.services.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
