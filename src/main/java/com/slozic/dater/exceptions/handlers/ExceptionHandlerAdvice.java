@@ -61,7 +61,7 @@ public class ExceptionHandlerAdvice {
     ResponseEntity<ErrorResponse> handleErrorOnImageStorage(final FileStorageException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.builder()
-                        .title("Error occurred while storing the image file.")
+                        .title("Error occurred while accessing the image file.")
                         .detail(ex.getMessage())
                         .build());
     }

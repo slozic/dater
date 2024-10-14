@@ -23,7 +23,7 @@ public class ProfileImageController {
     @PostMapping
     public ProfileImageCreatedResponse createUserProfileImage(@RequestParam("files") List<MultipartFile> images) {
         UUID authenticatedUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        return profileImageService.createProfileImages(authenticatedUser, images);
+        return profileImageService.createProfileImages(authenticatedUser.toString(), images);
     }
 
     @GetMapping

@@ -1,8 +1,8 @@
 package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.ImageParameters;
+import com.slozic.dater.dto.Result;
 import com.slozic.dater.exceptions.FileStorageException;
-import com.slozic.dater.services.images.ImageStorageService;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +15,7 @@ import java.util.random.RandomGenerator;
 
 @Service
 @Slf4j
-public class LocalImageStorageService implements ImageStorageService<MultipartFile, ImageParameters, String, byte[]> {
+public class LocalImageStorageService implements ImageStorageService<MultipartFile, String, Result<byte[], String>> {
     @Override
     public String storeImage(final MultipartFile image, final ImageParameters parameters) {
         if (image != null) {
@@ -37,7 +37,7 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
         return file.getPath();
     }
 
-    private File getFile(ImageParameters parameters, File imageDir) {
+    private File getFile(final ImageParameters parameters, final File imageDir) {
         return new File(imageDir.getPath() + "\\" +
                 System.currentTimeMillis() +
                 RandomGenerator.getDefault().nextInt() + "." +
@@ -45,37 +45,37 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
     }
 
     @Override
-    public byte[] loadImage(String imagePath) {
-        return getImageBytes(imagePath);
+    public Result loadImage(final String imagePath) {
+        try {
+            byte[] imageBytes = getImageBytes(imagePath);
+            return new Result(imageBytes, imagePath);
+        } catch (IOException e) {
+            log.error("Problem occurred with loading image: ", imagePath, e.getMessage());
+            return new Result(null, imagePath, e.getMessage());
+        }
     }
 
-    private byte[] getImageBytes(String imagePath) {
+    private byte[] getImageBytes(final String imagePath) throws IOException {
         File file = new File(imagePath);
-        byte[] imageBytes;
-
-        try {
-            imageBytes = Files.readAllBytes(file.toPath());
-        } catch (IOException e) {
-            throw new FileStorageException("Could not load image " + imagePath + ". Please try again!", e);
-        }
-        return imageBytes;
+        return Files.readAllBytes(file.toPath());
     }
 
     @Override
-    public byte[] resizeImage(byte[] imageBytes, ImageParameters parameters) {
+    public Result resizeImage(final Result<byte[], String> loadResult, final ImageParameters parameters) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            Thumbnails.of(new ByteArrayInputStream(imageBytes))
+            Thumbnails.of(new ByteArrayInputStream(loadResult.getPayload()))
                     .size(parameters.width(), parameters.height())
                     .outputFormat(parameters.type())
                     .toOutputStream(outputStream);
-            return outputStream.toByteArray();
+            return new Result(outputStream.toByteArray(), parameters.location());
         } catch (IOException e) {
-            throw new FileStorageException("Could not load image " + parameters.location() + ". Please try again!", e);
+            log.error("Problem occurred with resizing image: ", loadResult.getParameters(), e.getMessage());
+            return new Result(new byte[]{}, loadResult.getParameters(), e.getMessage());
         }
     }
 
     @Override
-    public void deleteImage(String imagePath) {
+    public void deleteImage(final String imagePath) {
         File file = new File(imagePath);
         boolean isDeleted = false;
 

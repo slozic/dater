@@ -1,6 +1,7 @@
 package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.ProfileImageDto;
+import com.slozic.dater.dto.Result;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageData;
@@ -25,9 +26,9 @@ public class ProfileImageService {
     @Autowired
     private ProfileImageRepository profileImageRepository;
 
-    public ProfileImageCreatedResponse createProfileImages(UUID userId, List<MultipartFile> images) {
-        getImageStorageStrategy().validate(images);
-        List<ProfileImageDto> profileImageDtos = storeImages(userId.toString(), images);
+    public ProfileImageCreatedResponse createProfileImages(String userId, List<MultipartFile> images) {
+        getImageStorageStrategy().validate(images, userId);
+        List<ProfileImageDto> profileImageDtos = storeImages(userId, images);
         List<String> imageIds = saveMetaDataAsEntity(profileImageDtos);
         return new ProfileImageCreatedResponse(userId.toString(), imageIds);
     }
@@ -72,8 +73,8 @@ public class ProfileImageService {
     private List<ProfileImageData> loadImagesIntoDto(List<UserImage> userImageList) {
         List<ProfileImageData> profileImageDataList = new ArrayList<>();
         for (UserImage image : userImageList) {
-            byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
-            profileImageDataList.add(new ProfileImageData(imageBytes, image.getId().toString()));
+            Result<byte[], String> imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
+            profileImageDataList.add(new ProfileImageData(imageBytes.getPayload(), image.getId().toString()));
         }
         return profileImageDataList;
     }

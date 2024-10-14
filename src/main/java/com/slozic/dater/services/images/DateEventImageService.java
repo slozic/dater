@@ -1,6 +1,7 @@
 package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.DateImageDto;
+import com.slozic.dater.dto.Result;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.images.*;
 import com.slozic.dater.exceptions.dateevent.DateEventException;
@@ -40,7 +41,7 @@ public class DateEventImageService {
         dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
                 new DateEventException("No DateEvents found with id: " + dateId));
 
-        getImageStorageStrategy().validate(images);
+        getImageStorageStrategy().validate(images, dateId);
         List<DateImageDto> dateImageDtos = storeImages(dateId, images);
         List<String> imageIds = saveMetaDataAsEntity(dateImageDtos);
         return new DateImageCreatedResponse(dateId, imageIds);
@@ -86,8 +87,12 @@ public class DateEventImageService {
     private List<DateImageData> loadImagesIntoDto(final List<DateImage> dateImageList) {
         List<DateImageData> dateImageDataList = new ArrayList<>();
         for (DateImage image : dateImageList) {
-            byte[] imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
-            dateImageDataList.add(new DateImageData(imageBytes, image.getId().toString()));
+            Result<byte[], String> result = getImageStorageStrategy().loadResizedImage(image.getImagePath());
+            if (result.isSuccess()) {
+                dateImageDataList.add(new DateImageData(result.getPayload(), image.getId().toString()));
+            } else {
+                dateImageDataList.add(new DateImageData(new byte[]{}, image.getId().toString(), "Image could not be loaded!"));
+            }
         }
         return dateImageDataList;
     }

@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 public class DateAttendeesService {
     private final DateAttendeeRepository dateAttendeeRepository;
     private final DateEventRepository dateEventRepository;
-
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Transactional

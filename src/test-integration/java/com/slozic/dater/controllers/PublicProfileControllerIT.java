@@ -54,7 +54,7 @@ class PublicProfileControllerIT extends IntegrationTest {
         var multipartFile2 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
         var multipartFile3 = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
 
-        profileImageService.createProfileImages(UUID.fromString(publicProfileId), List.of(multipartFile, multipartFile2, multipartFile3));
+        profileImageService.createProfileImages(publicProfileId, List.of(multipartFile, multipartFile2, multipartFile3));
 
         // when
         var mvcResultGet = mockMvc.perform(get("/users/{id}/public-profile", publicProfileId)

@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -167,6 +168,36 @@ class DateImageControllerIT extends IntegrationTest {
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateImages.sql"})
+    public void createDateEventImages_shouldFail_WhenMaxLimitIsExceeded() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        var multipartFile2 = new MockMultipartFile("files", "image2.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        // when
+        var mvcResult = mockMvc.perform(multipart("/dates/{dateId}/images", dateId)
+                        .file(multipartFile)
+                        .file(multipartFile2)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andReturn();
+
+        // then
+        assertThat(mvcResult.getResolvedException() instanceof DateImageException).isTrue();
+        assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("You can have only up to 3 images per date event! Available empty slots left: 1");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
             "classpath:fixtures/loadDateEvents.sql"})
     public void getDateEventImages_shouldReturnSuccess() throws Exception {
         // given
@@ -202,8 +233,65 @@ class DateImageControllerIT extends IntegrationTest {
 
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateImages.sql"})
+    public void getDateEventImages_shouldReturnPartialSuccess_WhenAllImagesCouldNotBeLoaded() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var mvcResultGet = mockMvc.perform(get("/dates/{dateId}/images", dateId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        DateImageResponse dateImageResponseActual = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), DateImageResponse.class);
+        assertThat(dateImageResponseActual.dateImageData()).size().isEqualTo(2);
+        assertThat(dateImageResponseActual.dateId()).isEqualTo(dateId);
+        dateImageResponseActual.dateImageData().forEach(dateImageData -> assertThat(dateImageData.errorMessage()).isNotBlank());
+        dateImageResponseActual.dateImageData().forEach(dateImageData -> assertThat(dateImageData.image()).isNullOrEmpty());
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateImages.sql"})
+    public void getDateEventImages_shouldReturnPartialSuccess_WhenSomeImagesCouldNotBeLoaded() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // insert new images
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+
+        dateEventImageService.createDateEventImages(dateId, List.of(multipartFile));
+
+        // when
+        var mvcResultGet = mockMvc.perform(get("/dates/{dateId}/images", dateId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        DateImageResponse dateImageResponseActual = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), DateImageResponse.class);
+        assertThat(dateImageResponseActual.dateImageData()).size().isEqualTo(3);
+        assertThat(dateImageResponseActual.dateId()).isEqualTo(dateId);
+        assertThat(dateImageResponseActual.dateImageData().stream().filter(dateImageData -> dateImageData.image().length == 0).collect(Collectors.toList())).hasSize(2);
+        assertThat(dateImageResponseActual.dateImageData().stream().filter(dateImageData -> dateImageData.image().length > 0).collect(Collectors.toList())).hasSize(1);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql"})
-    public void getDateEventImages_shouldReturnEmptyListForNonExistingDateId() throws Exception {
+    public void getDateEventImages_shouldReturnEmptyList_ForNonExistingDateId() throws Exception {
         // given
         String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
         String token = jwsBuilder.getJwt(userId);

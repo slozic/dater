@@ -1,11 +1,14 @@
 package com.slozic.dater.services.images;
 
-public interface ImageStorageService<ImageType, ImageParamType, ReturnType, LoadType> {
-    public ReturnType storeImage(ImageType imageType, ImageParamType parameters);
+import com.slozic.dater.dto.ImageParameters;
+import com.slozic.dater.dto.Result;
 
-    public LoadType loadImage(String imagePath);
+public interface ImageStorageService<ImageInput, Response, R extends Result<?, ?>> {
+    public Response storeImage(ImageInput imageInput, ImageParameters parameters);
 
-    public LoadType resizeImage(LoadType loadType, ImageParamType parameters);
+    public R loadImage(String imagePath);
+
+    public R resizeImage(R loadResult, ImageParameters parameters);
 
     void deleteImage(String imagePath);
 }
