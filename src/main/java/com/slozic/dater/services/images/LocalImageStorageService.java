@@ -45,13 +45,13 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
     }
 
     @Override
-    public Result loadImage(final String imagePath) {
+    public Result<byte[], String> loadImage(final String imagePath) {
         try {
             byte[] imageBytes = getImageBytes(imagePath);
-            return new Result(imageBytes, imagePath);
+            return new Result<>(imageBytes, imagePath);
         } catch (IOException e) {
-            log.error("Problem occurred with loading image: ", imagePath, e.getMessage());
-            return new Result(null, imagePath, e.getMessage());
+            log.error("Problem occurred with loading image {}, {}: ", imagePath, e.getMessage());
+            return new Result<>(null, imagePath, e.getMessage());
         }
     }
 
@@ -61,16 +61,16 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
     }
 
     @Override
-    public Result resizeImage(final Result<byte[], String> loadResult, final ImageParameters parameters) {
+    public Result<byte[], String> resizeImage(final Result<byte[], String> loadResult, final ImageParameters parameters) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             Thumbnails.of(new ByteArrayInputStream(loadResult.getPayload()))
                     .size(parameters.width(), parameters.height())
                     .outputFormat(parameters.type())
                     .toOutputStream(outputStream);
-            return new Result(outputStream.toByteArray(), parameters.location());
+            return new Result<>(outputStream.toByteArray(), parameters.location());
         } catch (IOException e) {
-            log.error("Problem occurred with resizing image: ", loadResult.getParameters(), e.getMessage());
-            return new Result(new byte[]{}, loadResult.getParameters(), e.getMessage());
+            log.error("Problem occurred with resizing image: {}, {}", loadResult.getParameters(), e.getMessage());
+            return new Result<>(new byte[]{}, loadResult.getParameters(), e.getMessage());
         }
     }
 
@@ -84,7 +84,7 @@ public class LocalImageStorageService implements ImageStorageService<MultipartFi
         }
 
         if (!isDeleted) {
-            log.error("Could not delete file under the path ", imagePath);
+            log.error("Could not delete file under the path {}", imagePath);
         }
     }
 }

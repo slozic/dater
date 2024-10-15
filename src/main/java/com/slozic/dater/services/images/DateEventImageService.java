@@ -60,8 +60,7 @@ public class DateEventImageService {
     }
 
     private ImageStorageStrategy getImageStorageStrategy() {
-        ImageStorageStrategy imageStorageStrategy = imageStorageStrategyFactory.getStrategy(ImageCategory.DATE);
-        return imageStorageStrategy;
+        return imageStorageStrategyFactory.getStrategy(ImageCategory.DATE);
     }
 
     private List<String> saveMetaDataAsEntity(final List<DateImageDto> dateImageDtos) {
@@ -142,6 +141,7 @@ public class DateEventImageService {
     public void deleteAllImages(final Date dateEvent) {
         List<DateImage> dateImageList = dateImageRepository.findAllByDateId(dateEvent.getId());
         deleteImagesFromDatabaseAndStorage(dateEvent.getId().toString(), dateImageList);
+        log.info("Deleted all images for date event with id {} ", dateEvent.getId());
     }
 
     private DateImageDeletedResponseList deleteImagesFromDatabaseAndStorage(final String dateId, final List<DateImage> dateImageList) {

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
-public class DateImageStorageStrategy implements ImageStorageStrategy<Result<byte[], String>> {
+public class DateImageStorageStrategy implements ImageStorageStrategy<MultipartFile, Result<byte[], String>> {
 
     @Value("${date.images.max-count}")
     private int MAX_IMAGES_PER_DATE;
@@ -35,12 +35,12 @@ public class DateImageStorageStrategy implements ImageStorageStrategy<Result<byt
     private DateImageRepository dateImageRepository;
 
     @Override
-    public String storeImage(MultipartFile image) {
+    public String storeImage(final MultipartFile image) {
         return imageStorageService.storeImage(image, getParameters());
     }
 
     @Override
-    public Result<byte[], String> loadImage(String imagePath) {
+    public Result<byte[], String> loadImage(final String imagePath) {
         return imageStorageService.loadImage(imagePath);
     }
 

@@ -32,7 +32,7 @@ public class DateAttendeesService {
     @Transactional
     public DateAttendeeResponse getAllDateAttendeeRequests(String dateId) {
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
-        if (!optionalDate.isPresent()) {
+        if (optionalDate.isEmpty()) {
             throw new DateEventException("Date event not found: " + dateId);
         }
 
@@ -43,7 +43,7 @@ public class DateAttendeesService {
 
     private DateAttendeeResponse getDateAttendeeResponse(String dateid, List<DateAttendee> dateAttendeesList) {
         List<DateAttendeeDto> dateAttendeeDtos = dateAttendeesList.stream()
-                .map(dateAttendee -> DateAttendeeDto.from(dateAttendee))
+                .map(DateAttendeeDto::from)
                 .collect(Collectors.toList());
         return new DateAttendeeResponse(dateid, dateAttendeeDtos);
     }

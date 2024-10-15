@@ -1,8 +1,11 @@
 package com.slozic.dater.exceptions.handlers;
 
-import com.slozic.dater.exceptions.*;
+import com.slozic.dater.exceptions.FileStorageException;
+import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
 import com.slozic.dater.exceptions.dateevent.DateEventException;
+import com.slozic.dater.exceptions.dateimage.DateImageAccessException;
 import com.slozic.dater.exceptions.dateimage.DateImageException;
 import com.slozic.dater.exceptions.user.UserNotFoundException;
 import com.slozic.dater.exceptions.user.UserProfileImageException;
@@ -61,7 +64,7 @@ public class ExceptionHandlerAdvice {
     ResponseEntity<ErrorResponse> handleErrorOnImageStorage(final FileStorageException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ErrorResponse.builder()
-                        .title("Error occurred while accessing the image file.")
+                        .title("Image storage error")
                         .detail(ex.getMessage())
                         .build());
     }
@@ -95,4 +98,25 @@ public class ExceptionHandlerAdvice {
                         .detail(ex.getMessage())
                         .build());
     }
+
+    @ExceptionHandler(DateEventAccessPermissionException.class)
+    ResponseEntity<ErrorResponse> handleDateEventPermissionException(final DateEventAccessPermissionException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .title("Date event access forbidden")
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(DateImageAccessException.class)
+    ResponseEntity<ErrorResponse> handleDateImageAccessException(final DateImageAccessException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .title("Date event image access forbidden")
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
 }

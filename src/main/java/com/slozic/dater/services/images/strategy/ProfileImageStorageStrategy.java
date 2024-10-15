@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Component
-public class ProfileImageStorageStrategy implements ImageStorageStrategy<Result<byte[], String>> {
+public class ProfileImageStorageStrategy implements ImageStorageStrategy<MultipartFile, Result<byte[], String>> {
 
     @Value("${user.images.max-count}")
     private int MAX_IMAGES_PER_USER_PROFILE;
@@ -45,7 +45,7 @@ public class ProfileImageStorageStrategy implements ImageStorageStrategy<Result<
     }
 
     @Override
-    public void validate(List<MultipartFile> images, String dateId) {
+    public void validate(final List<MultipartFile> images, String dateId) {
         if (images == null || images.isEmpty()) {
             throw new UserProfileImageException("No Images provided.");
         }

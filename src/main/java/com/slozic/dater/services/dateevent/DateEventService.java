@@ -40,12 +40,12 @@ public class DateEventService {
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Transactional(readOnly = true)
-    public DateEventListResponse getDateEvents(DateQueryParameters dateQueryParameters, UUID currentUser) {
+    public DateEventListResponse getDateEvents(final DateQueryParameters dateQueryParameters, UUID currentUser) {
         List<Date> dateList = filterDatesByParameters(dateQueryParameters, currentUser);
         return mapToListResponse(dateList);
     }
 
-    private List<Date> filterDatesByParameters(DateQueryParameters dateQueryParameters, UUID currentUser) {
+    private List<Date> filterDatesByParameters(final DateQueryParameters dateQueryParameters, UUID currentUser) {
         List<Date> dateList = new ArrayList<>();
         DateFilter dateFilter = DateFilter.fromString(dateQueryParameters.filter());
 
@@ -102,6 +102,7 @@ public class DateEventService {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         final Date dateCreated = saveDateEvent(request, currentUser.toString());
         dateAttendeesService.createDefaultDateAttendee(dateCreated);
+        log.info("New date event created {} ", dateCreated);
         return new DateEventCreatedResponse(dateCreated.getId().toString());
     }
 
@@ -122,6 +123,7 @@ public class DateEventService {
         dateEventImageService.deleteAllImages(dateEvent);
         dateAttendeesService.deleteAllAttendees(dateEvent);
         dateEventRepository.deleteById(UUID.fromString(dateId));
+        log.info("Deleted date event with id {} ", dateId);
     }
 
     private Date validateUserDatePermissions(String dateId) {
@@ -129,7 +131,7 @@ public class DateEventService {
         Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() -> new DateEventNotFoundException("Date event was not found: " + dateId));
 
         if(!dateEvent.getCreatedBy().equals(currentUser)){
-            throw new DateEventAccessPermissionException("User does have permission to delete the date event: " + dateId);
+            throw new DateEventAccessPermissionException("User does not have permission to delete the date event: " + dateId);
         }
         return dateEvent;
     }
