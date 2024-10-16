@@ -141,7 +141,6 @@ public class DateEventImageService {
     public void deleteAllImages(final Date dateEvent) {
         List<DateImage> dateImageList = dateImageRepository.findAllByDateId(dateEvent.getId());
         deleteImagesFromDatabaseAndStorage(dateEvent.getId().toString(), dateImageList);
-        log.info("Deleted all images for date event with id {} ", dateEvent.getId());
     }
 
     private DateImageDeletedResponseList deleteImagesFromDatabaseAndStorage(final String dateId, final List<DateImage> dateImageList) {

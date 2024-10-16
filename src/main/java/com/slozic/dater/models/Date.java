@@ -66,4 +66,11 @@ public class Date {
         return Objects.hashCode(id);
     }
 
+    @Override
+    public String toString() {
+        return "Date{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                '}';
+    }
 }

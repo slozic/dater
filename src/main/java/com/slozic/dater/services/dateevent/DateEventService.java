@@ -102,7 +102,6 @@ public class DateEventService {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         final Date dateCreated = saveDateEvent(request, currentUser.toString());
         dateAttendeesService.createDefaultDateAttendee(dateCreated);
-        log.info("New date event created {} ", dateCreated);
         return new DateEventCreatedResponse(dateCreated.getId().toString());
     }
 
@@ -123,7 +122,6 @@ public class DateEventService {
         dateEventImageService.deleteAllImages(dateEvent);
         dateAttendeesService.deleteAllAttendees(dateEvent);
         dateEventRepository.deleteById(UUID.fromString(dateId));
-        log.info("Deleted date event with id {} ", dateId);
     }
 
     private Date validateUserDatePermissions(String dateId) {
