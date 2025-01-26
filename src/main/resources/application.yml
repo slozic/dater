@@ -5,11 +5,14 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/dater?socketTimeout=30
-    username: dater
-    password: dater
+    username: app_user
+    password: password
     driver-class-name: org.postgresql.Driver
-    hikari:
-      schema: dater
+
+  jpa:
+    properties:
+      hibernate:
+        default-schema: public
 
   servlet:
     multipart:
