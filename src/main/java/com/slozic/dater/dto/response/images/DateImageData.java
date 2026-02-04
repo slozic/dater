@@ -1,13 +1,13 @@
 package com.slozic.dater.dto.response.images;
 
-public record DateImageData(byte[] image, String id, String errorMessage) {
+public record DateImageData(String imageUrl, String id, String errorMessage) {
 
-    public DateImageData(byte[] image, String id) {
-        this(image, id, null);
+    public DateImageData(String imageUrl, String id) {
+        this(imageUrl, id, null);
     }
 
-    public DateImageData(byte[] image, String id, String errorMessage) {
-        this.image = image;
+    public DateImageData(String imageUrl, String id, String errorMessage) {
+        this.imageUrl = imageUrl;
         this.id = id;
         this.errorMessage = errorMessage;
     }

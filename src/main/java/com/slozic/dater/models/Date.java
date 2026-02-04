@@ -31,6 +31,10 @@ public class Date {
     @NotBlank
     private String location;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @NotNull
     private boolean enabled;
 

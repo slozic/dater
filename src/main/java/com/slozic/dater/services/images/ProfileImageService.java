@@ -1,7 +1,6 @@
 package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.ProfileImageDto;
-import com.slozic.dater.dto.Result;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageData;
@@ -15,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,8 @@ public class ProfileImageService {
     private ImageStorageStrategyFactory imageStorageStrategyFactory;
     @Autowired
     private ProfileImageRepository profileImageRepository;
+    @Autowired
+    private ImageUrlService imageUrlService;
 
     public ProfileImageCreatedResponse createProfileImages(String userId, List<MultipartFile> images) {
         getImageStorageStrategy().validate(images, userId);
@@ -73,8 +76,12 @@ public class ProfileImageService {
     private List<ProfileImageData> loadImagesIntoDto(List<UserImage> userImageList) {
         List<ProfileImageData> profileImageDataList = new ArrayList<>();
         for (UserImage image : userImageList) {
-            Result<byte[], String> imageBytes = getImageStorageStrategy().loadImage(image.getImagePath());
-            profileImageDataList.add(new ProfileImageData(imageBytes.getPayload(), image.getId().toString()));
+            if (Files.exists(Path.of(image.getImagePath()))) {
+                String imageUrl = imageUrlService.buildUrl(ImageCategory.USER, image.getImagePath());
+                profileImageDataList.add(new ProfileImageData(imageUrl, image.getId().toString()));
+            } else {
+                profileImageDataList.add(new ProfileImageData(null, image.getId().toString(), "Image could not be loaded!"));
+            }
         }
         return profileImageDataList;
     }

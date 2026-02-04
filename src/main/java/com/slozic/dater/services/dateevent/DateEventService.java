@@ -3,6 +3,7 @@ package com.slozic.dater.services.dateevent;
 import com.slozic.dater.controllers.params.DateQueryParameters;
 import com.slozic.dater.dto.enums.DateFilter;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.request.UpdateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListData;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
@@ -34,6 +35,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DateEventService {
+    private static final double DEFAULT_RADIUS_KM = 10.0;
+    private static final double EARTH_RADIUS_KM = 6371.0;
     private final DateEventRepository dateEventRepository;
     private final DateAttendeesService dateAttendeesService;
     private final DateEventImageService dateEventImageService;
@@ -58,7 +61,7 @@ public class DateEventService {
                 dateList = dateEventRepository.findDatesByAttendeeId(currentUser);
             }
         }
-        return dateList;
+        return applyGeoFilter(dateList, dateQueryParameters);
     }
 
     private DateEventListResponse mapToListResponse(List<Date> dateList) {
@@ -73,6 +76,8 @@ public class DateEventService {
                 date.getId().toString(),
                 date.getTitle(),
                 date.getLocation(),
+                date.getLatitude(),
+                date.getLongitude(),
                 date.getDescription(),
                 date.getScheduledTime().toString());
     }
@@ -89,6 +94,8 @@ public class DateEventService {
                 date.getId().toString(),
                 date.getTitle(),
                 date.getLocation(),
+                date.getLatitude(),
+                date.getLongitude(),
                 date.getDescription(),
                 date.getUser().getUsername(),
                 date.getCreatedBy().toString(),
@@ -110,10 +117,36 @@ public class DateEventService {
                 .title(request.title())
                 .description(request.description())
                 .location(request.location())
+                .latitude(request.latitude())
+                .longitude(request.longitude())
                 .scheduledTime(OffsetDateTime.of(LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneOffset.UTC))
                 .createdBy(UUID.fromString(userId))
                 .build();
         return dateEventRepository.save(date);
+    }
+
+    private List<Date> applyGeoFilter(final List<Date> dates, final DateQueryParameters dateQueryParameters) {
+        if (dateQueryParameters.latitude().isEmpty() || dateQueryParameters.longitude().isEmpty()) {
+            return dates;
+        }
+        final double latitude = dateQueryParameters.latitude().get();
+        final double longitude = dateQueryParameters.longitude().get();
+        final double radiusKm = dateQueryParameters.radiusKm().orElse(DEFAULT_RADIUS_KM);
+
+        return dates.stream()
+                .filter(date -> date.getLatitude() != null && date.getLongitude() != null)
+                .filter(date -> haversineKm(latitude, longitude, date.getLatitude(), date.getLongitude()) <= radiusKm)
+                .collect(Collectors.toList());
+    }
+
+    private double haversineKm(double lat1, double lon1, double lat2, double lon2) {
+        final double latDistance = Math.toRadians(lat2 - lat1);
+        final double lonDistance = Math.toRadians(lon2 - lon1);
+        final double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        final double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS_KM * c;
     }
 
     @Transactional
@@ -122,6 +155,35 @@ public class DateEventService {
         dateEventImageService.deleteAllImages(dateEvent);
         dateAttendeesService.deleteAllAttendees(dateEvent);
         dateEventRepository.deleteById(UUID.fromString(dateId));
+    }
+
+    @Transactional
+    public DateEventResponse updateDateEvent(final String dateId, final UpdateDateEventRequest request) {
+        Date dateEvent = validateUserDatePermissions(dateId);
+
+        if (request.title() != null) {
+            dateEvent.setTitle(request.title());
+        }
+        if (request.description() != null) {
+            dateEvent.setDescription(request.description());
+        }
+        if (request.location() != null) {
+            dateEvent.setLocation(request.location());
+        }
+        if (request.latitude() != null) {
+            dateEvent.setLatitude(request.latitude());
+        }
+        if (request.longitude() != null) {
+            dateEvent.setLongitude(request.longitude());
+        }
+        if (request.scheduledTime() != null) {
+            dateEvent.setScheduledTime(OffsetDateTime.of(
+                    LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    ZoneOffset.UTC));
+        }
+
+        Date updated = dateEventRepository.save(dateEvent);
+        return mapEntityToDto().apply(updated);
     }
 
     private Date validateUserDatePermissions(String dateId) {

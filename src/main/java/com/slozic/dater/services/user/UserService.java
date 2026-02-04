@@ -1,6 +1,7 @@
 package com.slozic.dater.services.user;
 
 import com.slozic.dater.dto.UserDto;
+import com.slozic.dater.dto.request.UpdateUserProfileRequest;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.exceptions.user.UserNotFoundException;
@@ -12,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +50,35 @@ public class UserService {
                 .build();
         userRepository.save(user);
         return UserDto.from(user);
+    }
+
+    @Transactional
+    public UserDto updateCurrentUser(final UpdateUserProfileRequest request) throws UnauthorizedException {
+        UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        User user = userRepository.findOneById(currentUser)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + currentUser));
+
+        if (request.username() != null && !request.username().equals(user.getUsername())) {
+            userRepository.findOneByUsername(request.username())
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(user.getId())) {
+                            throw new IllegalArgumentException("Username is already taken.");
+                        }
+                    });
+            user.setUsername(request.username());
+        }
+
+        if (request.firstName() != null) {
+            user.setFirstname(request.firstName());
+        }
+        if (request.lastName() != null) {
+            user.setLastname(request.lastName());
+        }
+        if (request.birthday() != null) {
+            user.setBirthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE));
+        }
+
+        return UserDto.from(userRepository.save(user));
     }
 
 }

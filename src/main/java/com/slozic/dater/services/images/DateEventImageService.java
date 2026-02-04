@@ -1,7 +1,6 @@
 package com.slozic.dater.services.images;
 
 import com.slozic.dater.dto.DateImageDto;
-import com.slozic.dater.dto.Result;
 import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.images.*;
 import com.slozic.dater.exceptions.dateevent.DateEventException;
@@ -21,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public class DateEventImageService {
     private final DateEventRepository dateEventRepository;
     private final ImageStorageStrategyFactory imageStorageStrategyFactory;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
+    private final ImageUrlService imageUrlService;
 
     @Transactional
     public DateImageCreatedResponse createDateEventImages(final String dateId, final List<MultipartFile> images) {
@@ -86,11 +88,11 @@ public class DateEventImageService {
     private List<DateImageData> loadImagesIntoDto(final List<DateImage> dateImageList) {
         List<DateImageData> dateImageDataList = new ArrayList<>();
         for (DateImage image : dateImageList) {
-            Result<byte[], String> result = getImageStorageStrategy().loadResizedImage(image.getImagePath());
-            if (result.isSuccess()) {
-                dateImageDataList.add(new DateImageData(result.getPayload(), image.getId().toString()));
+            if (Files.exists(Path.of(image.getImagePath()))) {
+                String imageUrl = imageUrlService.buildUrl(ImageCategory.DATE, image.getImagePath());
+                dateImageDataList.add(new DateImageData(imageUrl, image.getId().toString()));
             } else {
-                dateImageDataList.add(new DateImageData(new byte[]{}, image.getId().toString(), "Image could not be loaded!"));
+                dateImageDataList.add(new DateImageData(null, image.getId().toString(), "Image could not be loaded!"));
             }
         }
         return dateImageDataList;

@@ -1,6 +1,7 @@
 package com.slozic.dater.models;
 
 import jakarta.persistence.*;
+import com.slozic.dater.dto.enums.JoinDateStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -20,11 +21,9 @@ public class DateAttendee {
     private DateAttendeeId id;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Builder.Default
-    private Boolean accepted = false;
-
-    @Builder.Default
-    private Boolean softDeleted = false;
+    private JoinDateStatus status = JoinDateStatus.ON_WAITLIST;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attendeeId", nullable = false, insertable = false, updatable = false)

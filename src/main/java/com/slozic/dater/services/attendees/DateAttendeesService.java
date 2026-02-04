@@ -51,7 +51,7 @@ public class DateAttendeesService {
     public DateAttendee createDefaultDateAttendee(Date dateCreated) {
         DateAttendee dateAttendee = DateAttendee.builder()
                 .id(new DateAttendeeId(dateCreated.getId(), dateCreated.getCreatedBy()))
-                .accepted(true)
+                .status(JoinDateStatus.ACCEPTED)
                 .build();
         return dateAttendeeRepository.save(dateAttendee);
     }
@@ -72,6 +72,7 @@ public class DateAttendeesService {
                         },
                         () -> dateAttendeeRepository.save(DateAttendee.builder()
                                 .id(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
+                                .status(JoinDateStatus.ON_WAITLIST)
                                 .build()));
     }
 
@@ -87,7 +88,7 @@ public class DateAttendeesService {
                 .ifPresentOrElse(
                         attendee -> {
                             if (!attendee.getId().getAttendeeId().equals(currentUser)) {
-                                attendee.setAccepted(true);
+                                attendee.setStatus(JoinDateStatus.ACCEPTED);
                                 dateAttendeeRepository.save(attendee);
                             }
                         },
@@ -98,7 +99,7 @@ public class DateAttendeesService {
 
     public DateAttendeeStatusResponse getDateAttendeeStatus(String dateId, UUID currentUserId) {
         JoinDateStatus joinDateStatus = dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
-                .map(dateAttendee -> dateAttendee.getAccepted() ? JoinDateStatus.ACCEPTED : JoinDateStatus.ON_WAITLIST)
+                .map(DateAttendee::getStatus)
                 .orElse(JoinDateStatus.NOT_REQUESTED);
         return new DateAttendeeStatusResponse(joinDateStatus, currentUserId.toString(), dateId);
     }
@@ -114,7 +115,7 @@ public class DateAttendeesService {
                 .ifPresentOrElse(
                         attendee -> {
                             if (!attendee.getId().getAttendeeId().equals(currentUser)) {
-                                attendee.setSoftDeleted(true);
+                                attendee.setStatus(JoinDateStatus.REJECTED);
                                 dateAttendeeRepository.save(attendee);
                             }
                         },

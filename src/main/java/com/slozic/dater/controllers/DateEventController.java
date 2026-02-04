@@ -2,6 +2,7 @@ package com.slozic.dater.controllers;
 
 import com.slozic.dater.controllers.params.DateQueryParameters;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
+import com.slozic.dater.dto.request.UpdateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
 import com.slozic.dater.dto.response.dates.DateEventListResponse;
 import com.slozic.dater.dto.response.dates.DateEventResponse;
@@ -57,6 +58,12 @@ public class DateEventController {
     @PostMapping
     public DateEventCreatedResponse createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
         return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest);
+    }
+
+    @PutMapping("/{id}")
+    public DateEventResponse updateDateEvent(@PathVariable("id") final String dateId,
+                                             @RequestBody UpdateDateEventRequest request) {
+        return dateEventService.updateDateEvent(dateId, request);
     }
 
     @DeleteMapping("/{id}")

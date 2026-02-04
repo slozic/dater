@@ -1,6 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.UserDto;
+import com.slozic.dater.dto.request.UpdateUserProfileRequest;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.services.user.UserService;
@@ -25,6 +26,11 @@ public class UsersController {
     public ResponseEntity<?> register(@RequestBody final UserRegistrationRequest request) {
         userService.doUserRegistration(request);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully registered!");
+    }
+
+    @PutMapping("/profile")
+    public UserDto updateProfile(@RequestBody final UpdateUserProfileRequest request) throws UnauthorizedException {
+        return userService.updateCurrentUser(request);
     }
 
 }
