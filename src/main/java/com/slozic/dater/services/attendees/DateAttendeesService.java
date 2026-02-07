@@ -110,6 +110,19 @@ public class DateAttendeesService {
         return new DateAttendeeStatusResponse(JoinDateStatus.REJECTED, attendeeId, dateId);
     }
 
+    @Transactional
+    public DateAttendeeStatusResponse cancelMyRequest(String dateId, UUID currentUserId) {
+        DateAttendee attendee = dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), currentUserId))
+                .orElseThrow(() -> new AttendeeNotFoundException("Attendee not found for date: " + dateId));
+
+        if (!JoinDateStatus.ON_WAITLIST.equals(attendee.getStatus())) {
+            throw new DateEventException("Cannot cancel request with status: " + attendee.getStatus());
+        }
+
+        dateAttendeeRepository.delete(attendee);
+        return new DateAttendeeStatusResponse(JoinDateStatus.NOT_REQUESTED, currentUserId.toString(), dateId);
+    }
+
     private void rejectAttendee(String dateId, String attendeeId, UUID currentUser) {
         dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), UUID.fromString(attendeeId)))
                 .ifPresentOrElse(
