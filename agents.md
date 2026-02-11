@@ -29,6 +29,14 @@
 - Date details only show image upload for the date owner; join requests can be canceled (ON_WAITLIST).
 - Added auth expiry handling: on 401 responses, token is cleared and app returns to login.
 
+## Completed Mobile Port Tasks
+- Date images (view/upload/delete) in Date Details.
+- Date request/accept flow (join + owner accept/reject) in Date Details.
+- Profile images (view/upload/delete) in Profile.
+- Request list UX: accepted highlight + waitlist toggle.
+- Request list: accept/reject feedback messages + profile link.
+- Join status hidden for owner.
+
 ## Pending Mobile Port Tasks
 - Date creation: add image upload and map/geo lookup for typed location.
 - Token refresh / persistent login (refresh tokens or longer JWT expiry).

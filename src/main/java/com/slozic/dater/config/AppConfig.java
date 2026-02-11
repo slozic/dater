@@ -20,9 +20,16 @@ public class AppConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
         config.applyPermitDefaultValues();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:19006",
+                "http://localhost:19000",
+                "http://localhost:8081"
+        ));
         config.setAllowCredentials(true);
-        config.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE"));
+        config.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setExposedHeaders(List.of("Authorization"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
