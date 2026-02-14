@@ -23,6 +23,8 @@
 - Added modern styling: light background, cards, accent buttons.
 - Tab bar hidden when logged out; added My Dates tab (created/requested) and excluded own/requested from main list.
 - Dates list now supports radius filtering with location opt-in and shows empty-state hints.
+- Unified accent styles + press feedback for buttons and cards; softened date card tint.
+- Added shared auth context to keep tab bar state in sync after login/logout.
 - Added Settings section on profile with Logout (clears token).
 - Note: Expo expects Node 20+; Node upgraded to v24.13.0.
 - Replaced deprecated SafeAreaView with `react-native-safe-area-context`.
