@@ -8,6 +8,7 @@
 - Image responses now return URLs instead of base64; new media paths served at `/media/user/**` and `/media/date/**`.
 - Security update: `/media/**` is publicly accessible (required for image loading).
 - Added cancel join request endpoint: `DELETE /dates/{id}/attendees/me` (only when status is ON_WAITLIST).
+- Requested dates now exclude `REJECTED`; main list hides dates rejected by the current user.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -20,6 +21,8 @@
 - Added API helper with SecureStore token storage and basic endpoints.
 - Implemented mobile Login + Dates list + Date details + Date creation + Profile (edit).
 - Added modern styling: light background, cards, accent buttons.
+- Tab bar hidden when logged out; added My Dates tab (created/requested) and excluded own/requested from main list.
+- Dates list now supports radius filtering with location opt-in and shows empty-state hints.
 - Added Settings section on profile with Logout (clears token).
 - Note: Expo expects Node 20+; Node upgraded to v24.13.0.
 - Replaced deprecated SafeAreaView with `react-native-safe-area-context`.
@@ -36,16 +39,30 @@
 - Request list UX: accepted highlight + waitlist toggle.
 - Request list: accept/reject feedback messages + profile link.
 - Join status hidden for owner.
+- Date creation updated with GPS lookup, date/time picker, and image uploads.
 
 ## Pending Mobile Port Tasks
-- Date creation: add image upload and map/geo lookup for typed location.
 - Token refresh / persistent login (refresh tokens or longer JWT expiry).
-- Accept/reject UX feedback (show status update and hide processed requests).
 - Add chat option (post-accept).
 - Report / block users.
 - Image zoom / full-screen viewer for date + profile images.
 - Add radius filter UI in mobile date list.
-- Date display formatting (human-readable date/time).
+- Date list: show human-readable date/time in cards.
 - Join status presentation (hide for owner; show for requester).
 - Link to user profile from date details.
+- Link to accepted attendee profile (owner view).
+- Link to date creator profile (non-owner view).
+- Edit date flow (title/description/location/date).
+- Delete date flow.
+- Public profile parity: gender field missing on mobile.
 - General UI polish (header title instead of `date/[id]`, spacing, alignment).
+
+## Location UX Options (evaluated)
+- Manual entry only (current): fastest, no API keys or billing.
+- Map picker with pin + reverse geocode: needs map SDK + billing; may return address more reliably than POI name.
+- Search/autocomplete (Mapbox/Google): best UX, requires API key + billing; Google has richer POI coverage, Mapbox simpler/cheaper for hobby scale.
+
+## Date Creation Location Toggle (follow-up ideas)
+- Persist the toggle choice per user.
+- Make it a soft opt-in on first use.
+- Add a brief privacy reminder in Settings.

@@ -2,6 +2,7 @@ package com.slozic.dater.services.dateevent;
 
 import com.slozic.dater.controllers.params.DateQueryParameters;
 import com.slozic.dater.dto.enums.DateFilter;
+import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.dto.request.CreateDateEventRequest;
 import com.slozic.dater.dto.request.UpdateDateEventRequest;
 import com.slozic.dater.dto.response.dates.DateEventCreatedResponse;
@@ -53,12 +54,14 @@ public class DateEventService {
         DateFilter dateFilter = DateFilter.fromString(dateQueryParameters.filter());
 
         if (dateFilter.equals(DateFilter.ALL)) {
-            dateList = dateEventRepository.findAll();
+            dateList = dateEventRepository.findAllExcludingStatusForUser(currentUser, JoinDateStatus.REJECTED);
         } else {
             if (dateFilter.equals(DateFilter.OWNED)) {
                 dateList = dateEventRepository.findAllByCreatedBy(currentUser);
             } else if (dateFilter.equals(DateFilter.REQUESTED)) {
-                dateList = dateEventRepository.findDatesByAttendeeId(currentUser);
+                dateList = dateEventRepository.findDatesByAttendeeId(
+                        currentUser,
+                        List.of(JoinDateStatus.ON_WAITLIST, JoinDateStatus.ACCEPTED));
             }
         }
         return applyGeoFilter(dateList, dateQueryParameters);
