@@ -4,11 +4,13 @@
 - Added geo fields to `dates` (latitude/longitude) and optional radius filtering via `GET /dates?latitude=...&longitude=...&radiusKm=...`.
 - Migrated `date_attendees` from `accepted/soft_deleted` booleans to `status` enum with new migration `V9__add_geo_and_attendee_status.sql`.
 - Added `PUT /dates/{id}` for date updates.
-- Added `PUT /users/profile` for profile updates (first/last/username/birthday).
+- Added `PUT /users/profile` for profile updates (first/last/username/birthday/gender).
 - Image responses now return URLs instead of base64; new media paths served at `/media/user/**` and `/media/date/**`.
 - Security update: `/media/**` is publicly accessible (required for image loading).
 - Added cancel join request endpoint: `DELETE /dates/{id}/attendees/me` (only when status is ON_WAITLIST).
 - Requested dates now exclude `REJECTED`; main list hides dates rejected by the current user.
+- Added users gender field (`V10__add_gender_to_users.sql`) and exposed it in profile/public-profile responses.
+- Hardened registration validation (`@Valid` + field constraints) to return 400 instead of 500 on missing fields.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -25,6 +27,8 @@
 - Dates list now supports radius filtering with location opt-in and shows empty-state hints.
 - Unified accent styles + press feedback for buttons and cards; softened date card tint.
 - Added shared auth context to keep tab bar state in sync after login/logout.
+- Added create-date required field validation with inline errors (title, location, description, date/time).
+- Added registration required field validation on mobile (including gender/birthday).
 - Added Settings section on profile with Logout (clears token).
 - Note: Expo expects Node 20+; Node upgraded to v24.13.0.
 - Replaced deprecated SafeAreaView with `react-native-safe-area-context`.
@@ -42,21 +46,19 @@
 - Request list: accept/reject feedback messages + profile link.
 - Join status hidden for owner.
 - Date creation updated with GPS lookup, date/time picker, and image uploads.
+- Date edit and delete flows added for owner in Date Details.
+- Image zoom/full-screen viewer added for date images and profile/public-profile images.
+- Gender added end-to-end (backend model + migration, mobile registration, profile and public profile display).
 
 ## Pending Mobile Port Tasks
 - Token refresh / persistent login (refresh tokens or longer JWT expiry).
 - Add chat option (post-accept).
 - Report / block users.
-- Image zoom / full-screen viewer for date + profile images.
-- Add radius filter UI in mobile date list.
 - Date list: show human-readable date/time in cards.
 - Join status presentation (hide for owner; show for requester).
 - Link to user profile from date details.
 - Link to accepted attendee profile (owner view).
 - Link to date creator profile (non-owner view).
-- Edit date flow (title/description/location/date).
-- Delete date flow.
-- Public profile parity: gender field missing on mobile.
 - General UI polish (header title instead of `date/[id]`, spacing, alignment).
 
 ## Location UX Options (evaluated)

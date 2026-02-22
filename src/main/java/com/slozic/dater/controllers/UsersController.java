@@ -5,6 +5,7 @@ import com.slozic.dater.dto.request.UpdateUserProfileRequest;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.services.user.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class UsersController {
         return userService.getCurrentAuthenticatedUser();
     }
     @PostMapping("/registration")
-    public ResponseEntity<?> register(@RequestBody final UserRegistrationRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody final UserRegistrationRequest request) {
         userService.doUserRegistration(request);
         return ResponseEntity.status(HttpStatus.OK).body("Successfully registered!");
     }

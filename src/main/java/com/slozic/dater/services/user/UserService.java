@@ -77,6 +77,9 @@ public class UserService {
         if (request.birthday() != null) {
             user.setBirthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE));
         }
+        if (request.gender() != null) {
+            user.setGender(request.gender());
+        }
 
         return UserDto.from(userRepository.save(user));
     }

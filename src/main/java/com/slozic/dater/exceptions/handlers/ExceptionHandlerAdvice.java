@@ -12,6 +12,7 @@ import com.slozic.dater.exceptions.user.UserProfileImageException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -116,6 +117,20 @@ public class ExceptionHandlerAdvice {
                         .status(HttpStatus.FORBIDDEN.value())
                         .title("Date event image access forbidden")
                         .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<ErrorResponse> handleValidationException(final MethodArgumentNotValidException ex) {
+        String detail = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
+                .orElse("Validation failed");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .title("Validation failed")
+                        .detail(detail)
                         .build());
     }
 

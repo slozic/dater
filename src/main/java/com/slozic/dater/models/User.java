@@ -40,6 +40,8 @@ public class User {
 
     private LocalDate birthday;
 
+    private String gender;
+
     @NotNull
     private OffsetDateTime createdAt;
 
@@ -69,6 +71,7 @@ public class User {
                 .lastname(request.lastName())
                 .email(request.email())
                 .birthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE))
+                .gender(request.gender())
                 .enabled(true)
                 .createdAt(OffsetDateTime.now())
                 .build();

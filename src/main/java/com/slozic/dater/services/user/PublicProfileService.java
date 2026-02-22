@@ -16,6 +16,11 @@ public class PublicProfileService {
     public PublicProfileResponse getPublicProfile(String userId) {
         UserDto userDto = userService.getUserById(userId);
         ProfileImageResponse profileImages = profileImageService.getProfileImages(userId);
-        return new PublicProfileResponse(userDto.id(), userDto.username(), userDto.firstName() + " " + userDto.lastName(), "", profileImages.profileImageData());
+        return new PublicProfileResponse(
+                userDto.id(),
+                userDto.username(),
+                userDto.firstName() + " " + userDto.lastName(),
+                userDto.gender(),
+                profileImages.profileImageData());
     }
 }
