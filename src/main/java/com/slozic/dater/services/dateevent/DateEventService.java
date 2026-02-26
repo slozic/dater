@@ -13,7 +13,9 @@ import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
 import com.slozic.dater.exceptions.dateevent.DateEventNotFoundException;
 import com.slozic.dater.exceptions.UnauthorizedException;
 import com.slozic.dater.models.Date;
+import com.slozic.dater.models.User;
 import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.attendees.DateAttendeesService;
 import com.slozic.dater.services.images.DateEventImageService;
@@ -42,6 +44,7 @@ public class DateEventService {
     private final DateAttendeesService dateAttendeesService;
     private final DateEventImageService dateEventImageService;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public DateEventListResponse getDateEvents(final DateQueryParameters dateQueryParameters, UUID currentUser) {
@@ -55,6 +58,7 @@ public class DateEventService {
 
         if (dateFilter.equals(DateFilter.ALL)) {
             dateList = dateEventRepository.findAllExcludingStatusForUser(currentUser, JoinDateStatus.REJECTED);
+            dateList = applyOwnerGenderPreference(dateList, currentUser);
         } else {
             if (dateFilter.equals(DateFilter.OWNED)) {
                 dateList = dateEventRepository.findAllByCreatedBy(currentUser);
@@ -64,7 +68,34 @@ public class DateEventService {
                         List.of(JoinDateStatus.ON_WAITLIST, JoinDateStatus.ACCEPTED));
             }
         }
-        return applyGeoFilter(dateList, dateQueryParameters);
+        return applyGeoFilter(applyUpcomingFilter(dateList, dateQueryParameters), dateQueryParameters);
+    }
+
+    private List<Date> applyUpcomingFilter(final List<Date> dates, final DateQueryParameters dateQueryParameters) {
+        final boolean includePast = dateQueryParameters.includePast().orElse(false);
+        if (includePast) {
+            return dates;
+        }
+        final OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(1);
+        return dates.stream()
+                .filter(date -> date.getScheduledTime() != null)
+                .filter(date -> date.getScheduledTime().isAfter(cutoff))
+                .collect(Collectors.toList());
+    }
+
+    private List<Date> applyOwnerGenderPreference(final List<Date> dates, final UUID currentUser) {
+        final String preference = userRepository.findOneById(currentUser)
+                .map(User::getDateListGenderFilter)
+                .orElse("ALL");
+
+        if (preference == null || preference.equalsIgnoreCase("ALL")) {
+            return dates;
+        }
+
+        return dates.stream()
+                .filter(date -> date.getUser() != null && date.getUser().getGender() != null)
+                .filter(date -> preference.equalsIgnoreCase(date.getUser().getGender()))
+                .collect(Collectors.toList());
     }
 
     private DateEventListResponse mapToListResponse(List<Date> dateList) {

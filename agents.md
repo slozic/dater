@@ -11,6 +11,8 @@
 - Requested dates now exclude `REJECTED`; main list hides dates rejected by the current user.
 - Added users gender field (`V10__add_gender_to_users.sql`) and exposed it in profile/public-profile responses.
 - Hardened registration validation (`@Valid` + field constraints) to return 400 instead of 500 on missing fields.
+- Added user discovery preference (`date_list_gender_filter`) and applied it to main date list results (all/male/female).
+- Date list API now defaults to upcoming-only (`now + 1 min`); supports `includePast=true` for historical fetches.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -29,6 +31,7 @@
 - Added shared auth context to keep tab bar state in sync after login/logout.
 - Added create-date required field validation with inline errors (title, location, description, date/time).
 - Added registration required field validation on mobile (including gender/birthday).
+- Added login form validation (required username/password) with generic auth failure messaging.
 - Added Settings section on profile with Logout (clears token).
 - Note: Expo expects Node 20+; Node upgraded to v24.13.0.
 - Replaced deprecated SafeAreaView with `react-native-safe-area-context`.
@@ -49,6 +52,11 @@
 - Date edit and delete flows added for owner in Date Details.
 - Image zoom/full-screen viewer added for date images and profile/public-profile images.
 - Gender added end-to-end (backend model + migration, mobile registration, profile and public profile display).
+- Profile Settings now includes "Show dates from" selector (All/Male/Female).
+- My Dates now has on-demand "View past dates" section with muted/strikethrough styling for expired items.
+- My Dates keeps past section expanded when returning from date details.
+- Past date details keep owner delete only (no edit), and disable active interactions (join/waitlist/upload).
+- Main Dates cards now display human-readable date/time (aligned with My Dates cards).
 
 ## Pending Mobile Port Tasks
 - Token refresh / persistent login (refresh tokens or longer JWT expiry).

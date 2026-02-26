@@ -8,5 +8,6 @@ public record DateQueryParameters(
         Optional<String> sort,
         Optional<Double> latitude,
         Optional<Double> longitude,
-        Optional<Double> radiusKm) {
+        Optional<Double> radiusKm,
+        Optional<Boolean> includePast) {
 }

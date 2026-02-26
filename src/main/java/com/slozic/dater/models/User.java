@@ -42,6 +42,8 @@ public class User {
 
     private String gender;
 
+    private String dateListGenderFilter;
+
     @NotNull
     private OffsetDateTime createdAt;
 
@@ -72,6 +74,7 @@ public class User {
                 .email(request.email())
                 .birthday(LocalDate.parse(request.birthday(), DateTimeFormatter.ISO_LOCAL_DATE))
                 .gender(request.gender())
+                .dateListGenderFilter("ALL")
                 .enabled(true)
                 .createdAt(OffsetDateTime.now())
                 .build();

@@ -80,6 +80,9 @@ public class UserService {
         if (request.gender() != null) {
             user.setGender(request.gender());
         }
+        if (request.dateListGenderFilter() != null) {
+            user.setDateListGenderFilter(request.dateListGenderFilter().toUpperCase());
+        }
 
         return UserDto.from(userRepository.save(user));
     }
