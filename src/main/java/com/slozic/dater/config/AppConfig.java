@@ -1,5 +1,7 @@
 package com.slozic.dater.config;
 
+import com.slozic.dater.security.jwt.JWTUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +18,12 @@ public class AppConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
+
+    @Bean
+    public JWTUtils jwtUtils(@Value("${jwt.signing-key}") final String signingKey) {
+        return new JWTUtils(signingKey);
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration config = new CorsConfiguration();
@@ -29,7 +37,7 @@ public class AppConfig {
         config.setAllowCredentials(true);
         config.setAllowedMethods(List.of("GET", "PUT", "POST", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setExposedHeaders(List.of("Authorization"));
+        config.setExposedHeaders(List.of("Authorization", "Refresh-Token"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

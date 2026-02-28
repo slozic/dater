@@ -35,7 +35,7 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
         }
         try {
             final String token = authorizationHeader.replace("Bearer ", "");
-            String subject = jwtUtils.getTokenSubject(token);
+            String subject = jwtUtils.getAccessTokenSubject(token);
             Authentication authentication = new UsernamePasswordAuthenticationToken(subject, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (JwtException e) {

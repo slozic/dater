@@ -48,9 +48,11 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
     ) {
         String subject = ((ApplicationUser) authResult.getPrincipal()).id();
         Map<String, Object> claims = getClaims(authResult);
-        String token = jwtUtils.generateToken(claims, subject);
-        response.addHeader("Authorization", "Bearer " + token);
-        response.addHeader("Access-Control-Expose-Headers", "Authorization");
+        String accessToken = jwtUtils.generateAccessToken(claims, subject);
+        String refreshToken = jwtUtils.generateRefreshToken(subject);
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        response.addHeader("Refresh-Token", "Bearer " + refreshToken);
+        response.addHeader("Access-Control-Expose-Headers", "Authorization,Refresh-Token");
     }
 
     private Map<String, Object> getClaims(Authentication authResult) {

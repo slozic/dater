@@ -31,7 +31,7 @@ public class ApplicationSecurityConfig {
                 .with(myCustomAuthFilterDsl, Customizer.withDefaults())
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/", "/index**", "/media/**", "/users/registration", "/v3/api-docs**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/", "/index**", "/media/**", "/users/registration", "/auth/refresh", "/v3/api-docs**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .anyRequest()
                         .authenticated()
