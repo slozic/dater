@@ -253,7 +253,7 @@ class DateImageControllerIT extends IntegrationTest {
         assertThat(dateImageResponseActual.dateImageData()).size().isEqualTo(2);
         assertThat(dateImageResponseActual.dateId()).isEqualTo(dateId);
         dateImageResponseActual.dateImageData().forEach(dateImageData -> assertThat(dateImageData.errorMessage()).isNotBlank());
-        dateImageResponseActual.dateImageData().forEach(dateImageData -> assertThat(dateImageData.image()).isNullOrEmpty());
+        dateImageResponseActual.dateImageData().forEach(dateImageData -> assertThat(dateImageData.imageUrl()).isNullOrEmpty());
     }
 
     @Test
@@ -284,8 +284,12 @@ class DateImageControllerIT extends IntegrationTest {
         DateImageResponse dateImageResponseActual = objectMapper.readValue(mvcResultGet.getResponse().getContentAsString(), DateImageResponse.class);
         assertThat(dateImageResponseActual.dateImageData()).size().isEqualTo(3);
         assertThat(dateImageResponseActual.dateId()).isEqualTo(dateId);
-        assertThat(dateImageResponseActual.dateImageData().stream().filter(dateImageData -> dateImageData.image().length == 0).collect(Collectors.toList())).hasSize(2);
-        assertThat(dateImageResponseActual.dateImageData().stream().filter(dateImageData -> dateImageData.image().length > 0).collect(Collectors.toList())).hasSize(1);
+        assertThat(dateImageResponseActual.dateImageData().stream()
+                .filter(dateImageData -> dateImageData.imageUrl() == null || dateImageData.imageUrl().isEmpty())
+                .collect(Collectors.toList())).hasSize(2);
+        assertThat(dateImageResponseActual.dateImageData().stream()
+                .filter(dateImageData -> dateImageData.imageUrl() != null && !dateImageData.imageUrl().isEmpty())
+                .collect(Collectors.toList())).hasSize(1);
     }
 
     @Test

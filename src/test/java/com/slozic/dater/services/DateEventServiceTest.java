@@ -53,7 +53,14 @@ public class DateEventServiceTest {
         });
 
         // when
-        CreateDateEventRequest request = new CreateDateEventRequest(title, location, description, scheduledTime);
+        CreateDateEventRequest request = new CreateDateEventRequest(
+                title,
+                description,
+                location,
+                null,
+                null,
+                scheduledTime
+        );
         DateEventCreatedResponse result = dateEventService.createDateEventWithDefaultAttendee(request);
 
         // then

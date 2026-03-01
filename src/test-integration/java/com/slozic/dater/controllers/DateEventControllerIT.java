@@ -55,7 +55,7 @@ public class DateEventControllerIT extends IntegrationTest {
 
         // when
         var mvcResult = mockMvc.perform(
-                        get("/dates")
+                        get("/dates").param("includePast", "true")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -76,7 +76,7 @@ public class DateEventControllerIT extends IntegrationTest {
 
         // when
         var mvcResult = mockMvc.perform(
-                        get("/dates").param("filter", "owned")
+                        get("/dates").param("filter", "owned").param("includePast", "true")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -90,14 +90,15 @@ public class DateEventControllerIT extends IntegrationTest {
     @Test
     @Sql(scripts = {"classpath:fixtures/resetDB.sql",
             "classpath:fixtures/loadUsers.sql",
-            "classpath:fixtures/loadDateEvents.sql"})
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
     public void getAllDateEvents_shouldLoadUserRequestedDatesWithSuccess() throws Exception {
         // given
         String token = jwsBuilder.getJwt("aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5");
 
         // when
         var mvcResult = mockMvc.perform(
-                        get("/dates").param("filter", "owned")
+                        get("/dates").param("filter", "requested").param("includePast", "true")
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -168,6 +169,8 @@ public class DateEventControllerIT extends IntegrationTest {
                 "title",
                 "description",
                 "location",
+                null,
+                null,
                 "2024-01-29T20:00");
         return createDateEventRequest;
     }

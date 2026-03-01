@@ -13,6 +13,22 @@
 - Hardened registration validation (`@Valid` + field constraints) to return 400 instead of 500 on missing fields.
 - Added user discovery preference (`date_list_gender_filter`) and applied it to main date list results (all/male/female).
 - Date list API now defaults to upcoming-only (`now + 1 min`); supports `includePast=true` for historical fetches.
+- Added refresh-token auth flow:
+  - Login now returns both `Authorization` (access) and `Refresh-Token`.
+  - New `POST /auth/refresh` endpoint rotates tokens.
+  - JWTs now carry token type (`ACCESS`/`REFRESH`) and are validated by usage.
+  - CORS exposes `Refresh-Token` header for clients.
+- Added date chat backend (owner <-> accepted attendee):
+  - New `chat_messages` storage (`V12__add_chat_messages.sql`).
+  - New endpoints:
+    - `GET /dates/{id}/chat/messages`
+    - `POST /dates/{id}/chat/messages`
+  - Access control enforces date owner + currently accepted attendee only.
+- Added/updated backend tests for refreshed functionality:
+  - New unit tests for JWT token-type validation and chat service authorization.
+  - New integration tests for `POST /auth/refresh` and date chat endpoints.
+  - Updated legacy integration fixtures/tests for attendee `status` model and `includePast` defaults.
+  - Testcontainers dependency updated for local Docker Desktop compatibility.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -40,6 +56,16 @@
 - Profile now refreshes on focus to show current logged-in user.
 - Date details only show image upload for the date owner; join requests can be canceled (ON_WAITLIST).
 - Added auth expiry handling: on 401 responses, token is cleared and app returns to login.
+- Added automatic access-token refresh and retry-once behavior using stored refresh tokens.
+- Profile page reordered to: photos first, details second, settings last.
+- Profile details now display `Full name`; birthday/gender are visible but read-only in edit mode.
+- Profile/date CTA buttons are now compact, centered, and more visually consistent.
+- Date details requests are hidden by default behind a "View requests" toggle and use cleaner card-style rows.
+- Date details now has explicit creator profile navigation via `View profile` button.
+- Added date chat UI:
+  - New chat screen `app/date/chat/[id].tsx` with polling-based updates.
+  - New `Open chat` action in date details (available to owner or accepted attendee).
+  - Added chat API client methods in `lib/api.ts`.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -59,14 +85,7 @@
 - Main Dates cards now display human-readable date/time (aligned with My Dates cards).
 
 ## Pending Mobile Port Tasks
-- Token refresh / persistent login (refresh tokens or longer JWT expiry).
-- Add chat option (post-accept).
 - Report / block users.
-- Date list: show human-readable date/time in cards.
-- Join status presentation (hide for owner; show for requester).
-- Link to user profile from date details.
-- Link to accepted attendee profile (owner view).
-- Link to date creator profile (non-owner view).
 - General UI polish (header title instead of `date/[id]`, spacing, alignment).
 
 ## Location UX Options (evaluated)

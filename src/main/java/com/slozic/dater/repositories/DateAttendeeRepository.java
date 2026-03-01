@@ -20,5 +20,9 @@ public interface DateAttendeeRepository extends JpaRepository<DateAttendee, Date
             " where da.id.attendeeId = :id ")
     List<DateAttendee> findAllCreatedBySpecificUser(UUID id);
 
+    @Query(nativeQuery = false, value = "select da from DateAttendee da " +
+            "where da.id.dateId = :dateId and da.status = 'ACCEPTED' and da.id.attendeeId <> :excludedAttendeeId")
+    List<DateAttendee> findAcceptedAttendeesForDateExcludingUser(UUID dateId, UUID excludedAttendeeId);
+
     void deleteAllByIdDateId(UUID dateId);
 }
