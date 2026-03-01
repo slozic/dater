@@ -57,6 +57,8 @@
 - Date details only show image upload for the date owner; join requests can be canceled (ON_WAITLIST).
 - Added auth expiry handling: on 401 responses, token is cleared and app returns to login.
 - Added automatic access-token refresh and retry-once behavior using stored refresh tokens.
+- Added single-flight refresh handling in API client so concurrent 401/403 responses share one refresh request.
+- Reduced duplicate date-list traffic by using focus-driven loading and in-flight guards on list screens.
 - Profile page reordered to: photos first, details second, settings last.
 - Profile details now display `Full name`; birthday/gender are visible but read-only in edit mode.
 - Profile/date CTA buttons are now compact, centered, and more visually consistent.
@@ -66,6 +68,10 @@
   - New chat screen `app/date/chat/[id].tsx` with polling-based updates.
   - New `Open chat` action in date details (available to owner or accepted attendee).
   - Added chat API client methods in `lib/api.ts`.
+  - Chat screen now shows date context title and person icons next to chat bubbles.
+- Date details owner actions (`Edit date`, `Delete date`, `Open chat`, `Upload images`) are now grouped in an options menu.
+- My Dates now uses an options menu with views for `Created`, `Requested`, `Accepted`, and `Past` dates.
+- Options menus were refined as anchored overlays to avoid layout shifting/off-screen clipping and now show active selection indicators.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
