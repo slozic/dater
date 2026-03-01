@@ -42,7 +42,9 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
             if (e instanceof ExpiredJwtException) {
                 logger.warn("JWT has expired!");
             }
-            throw new IllegalStateException(String.format("Authentication failed during token validation"));
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed during token validation");
+            return;
         }
 
         filterChain.doFilter(request, response);
