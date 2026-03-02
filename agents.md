@@ -71,7 +71,12 @@
   - Chat screen now shows date context title and person icons next to chat bubbles.
 - Date details owner actions (`Edit date`, `Delete date`, `Open chat`, `Upload images`) are now grouped in an options menu.
 - My Dates now uses an options menu with views for `Created`, `Requested`, `Accepted`, and `Past` dates.
-- Options menus were refined as anchored overlays to avoid layout shifting/off-screen clipping and now show active selection indicators.
+- Options menus were migrated to modal-popover pattern for more reliable Android touch behavior.
+- Options menus now dismiss on outside tap while preserving reliable menu-item clicks.
+- Header polish completed for stack routes: white header style + explicit screen titles (no raw route labels).
+- Chat content labels were simplified to reduce duplication (only date title below header).
+- Chat keyboard handling improved (Android resize mode + safer keyboard offsets) so composer stays visible while typing.
+- Options triggers now share consistent accent pill styling across screens and use flat (no elevation) Android-friendly rendering.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -92,7 +97,8 @@
 
 ## Pending Mobile Port Tasks
 - Report / block users.
-- General UI polish (header title instead of `date/[id]`, spacing, alignment).
+- Complete final UI polish pass (spacing/alignment consistency across remaining screens).
+- Unify options menus into one reusable popover/sheet component for consistent behavior and styling.
 
 ## Location UX Options (evaluated)
 - Manual entry only (current): fastest, no API keys or billing.
