@@ -77,6 +77,11 @@
 - Chat content labels were simplified to reduce duplication (only date title below header).
 - Chat keyboard handling improved (Android resize mode + safer keyboard offsets) so composer stays visible while typing.
 - Options triggers now share consistent accent pill styling across screens and use flat (no elevation) Android-friendly rendering.
+- Added reusable mobile UI components:
+  - `components/ui/ActionPillButton.tsx` for shared accent pill actions.
+  - `components/ui/OptionsPopover.tsx` for consistent options menu modal behavior.
+  - `components/ui/OptionsMenuItem.tsx` for shared menu-row rendering (icon, active, destructive, disabled states).
+  - Refactored My Dates, Date Details, and Profile to use these shared components.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -98,7 +103,6 @@
 ## Pending Mobile Port Tasks
 - Report / block users.
 - Complete final UI polish pass (spacing/alignment consistency across remaining screens).
-- Unify options menus into one reusable popover/sheet component for consistent behavior and styling.
 
 ## Location UX Options (evaluated)
 - Manual entry only (current): fastest, no API keys or billing.
