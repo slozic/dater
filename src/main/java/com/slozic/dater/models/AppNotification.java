@@ -9,38 +9,39 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "chat_messages")
+@Table(name = "notifications")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder(toBuilder = true)
-public class ChatMessage {
+public class AppNotification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @NotNull
-    @Column(name = "date_id")
-    private UUID dateId;
+    @Column(name = "user_id")
+    private UUID userId;
 
     @NotNull
-    @Column(name = "sender_id")
-    private UUID senderId;
-
-    @NotNull
-    @Column(name = "recipient_id")
-    private UUID recipientId;
-
-    @NotNull
-    @Column(name = "participant_user_id")
-    private UUID participantUserId;
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
 
     @NotBlank
-    private String message;
+    private String title;
+
+    @NotBlank
+    private String body;
+
+    @Column(name = "related_date_id")
+    private UUID relatedDateId;
 
     @NotNull
     @Builder.Default
     @Column(name = "created_at")
     private OffsetDateTime createdAt = OffsetDateTime.now();
+
+    @Column(name = "read_at")
+    private OffsetDateTime readAt;
 }

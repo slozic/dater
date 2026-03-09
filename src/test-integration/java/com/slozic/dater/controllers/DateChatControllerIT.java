@@ -78,4 +78,20 @@ public class DateChatControllerIT extends IntegrationTest {
 
         assertThat(listResult.getResponse().getStatus()).isEqualTo(403);
     }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadChatThreadSwitchData.sql"})
+    void getDateChatMessages_shouldReturnOnlyCurrentAcceptedAttendeeThread() throws Exception {
+        final String ownerToken = jwsBuilder.getJwt("aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5");
+
+        final var listResult = mockMvc.perform(
+                        get("/dates/{id}/chat/messages", "be62daa9-6cda-45ea-8b0b-4ea15f735e53")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + ownerToken)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        assertThat(listResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(listResult.getResponse().getContentAsString()).contains("new thread hello");
+        assertThat(listResult.getResponse().getContentAsString()).doesNotContain("old thread hello");
+    }
 }

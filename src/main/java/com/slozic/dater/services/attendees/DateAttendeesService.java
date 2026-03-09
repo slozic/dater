@@ -13,6 +13,7 @@ import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
+import com.slozic.dater.services.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class DateAttendeesService {
     private final DateAttendeeRepository dateAttendeeRepository;
     private final DateEventRepository dateEventRepository;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
+    private final NotificationService notificationService;
 
     @Transactional
     public DateAttendeeResponse getAllDateAttendeeRequests(String dateId) {
@@ -79,22 +81,27 @@ public class DateAttendeesService {
     @Transactional
     public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        acceptDateAttendee(dateId, userId, currentUser);
+        final UUID parsedDateId = UUID.fromString(dateId);
+        final UUID acceptedUserId = UUID.fromString(userId);
+        final Date date = dateEventRepository.findById(parsedDateId)
+                .orElseThrow(() -> new DateEventException("Date event not found: " + dateId));
+        final boolean changedToAccepted = acceptDateAttendee(parsedDateId, acceptedUserId, currentUser);
+        if (changedToAccepted) {
+            notificationService.notifyAttendeeAccepted(acceptedUserId, parsedDateId, date.getTitle());
+        }
         return new DateAttendeeStatusResponse(JoinDateStatus.ACCEPTED, userId, dateId);
     }
 
-    private void acceptDateAttendee(String dateId, String userId, UUID currentUser) {
-        dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), UUID.fromString(userId)))
-                .ifPresentOrElse(
-                        attendee -> {
-                            if (!attendee.getId().getAttendeeId().equals(currentUser)) {
-                                attendee.setStatus(JoinDateStatus.ACCEPTED);
-                                dateAttendeeRepository.save(attendee);
-                            }
-                        },
-                        () -> {
-                            throw new AttendeeNotFoundException("Attendee not found for date: " + dateId);
-                        });
+    private boolean acceptDateAttendee(UUID dateId, UUID userId, UUID currentUser) {
+        final DateAttendee attendee = dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))
+                .orElseThrow(() -> new AttendeeNotFoundException("Attendee not found for date: " + dateId));
+        if (attendee.getId().getAttendeeId().equals(currentUser)) {
+            return false;
+        }
+        final boolean changedToAccepted = attendee.getStatus() != JoinDateStatus.ACCEPTED;
+        attendee.setStatus(JoinDateStatus.ACCEPTED);
+        dateAttendeeRepository.save(attendee);
+        return changedToAccepted;
     }
 
     public DateAttendeeStatusResponse getDateAttendeeStatus(String dateId, UUID currentUserId) {

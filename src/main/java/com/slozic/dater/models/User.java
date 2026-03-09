@@ -44,6 +44,8 @@ public class User {
 
     private String dateListGenderFilter;
 
+    private String pushToken;
+
     @NotNull
     private OffsetDateTime createdAt;
 

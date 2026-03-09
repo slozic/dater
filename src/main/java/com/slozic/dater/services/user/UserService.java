@@ -1,6 +1,7 @@
 package com.slozic.dater.services.user;
 
 import com.slozic.dater.dto.UserDto;
+import com.slozic.dater.dto.request.UpdatePushTokenRequest;
 import com.slozic.dater.dto.request.UpdateUserProfileRequest;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
@@ -85,6 +86,16 @@ public class UserService {
         }
 
         return UserDto.from(userRepository.save(user));
+    }
+
+    @Transactional
+    public void updatePushToken(final UpdatePushTokenRequest request) throws UnauthorizedException {
+        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        final User user = userRepository.findOneById(currentUser)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + currentUser));
+        final String sanitizedToken = request.pushToken() == null ? null : request.pushToken().trim();
+        user.setPushToken(sanitizedToken == null || sanitizedToken.isEmpty() ? null : sanitizedToken);
+        userRepository.save(user);
     }
 
 }

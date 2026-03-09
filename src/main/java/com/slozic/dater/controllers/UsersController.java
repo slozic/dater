@@ -1,6 +1,7 @@
 package com.slozic.dater.controllers;
 
 import com.slozic.dater.dto.UserDto;
+import com.slozic.dater.dto.request.UpdatePushTokenRequest;
 import com.slozic.dater.dto.request.UpdateUserProfileRequest;
 import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.exceptions.UnauthorizedException;
@@ -32,6 +33,11 @@ public class UsersController {
     @PutMapping("/profile")
     public UserDto updateProfile(@RequestBody final UpdateUserProfileRequest request) throws UnauthorizedException {
         return userService.updateCurrentUser(request);
+    }
+
+    @PutMapping("/push-token")
+    public void updatePushToken(@RequestBody final UpdatePushTokenRequest request) throws UnauthorizedException {
+        userService.updatePushToken(request);
     }
 
 }

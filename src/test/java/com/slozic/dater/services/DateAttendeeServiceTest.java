@@ -2,11 +2,14 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.attendees.DateAttendeesService;
+import com.slozic.dater.services.notifications.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +23,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +35,11 @@ public class DateAttendeeServiceTest {
     @Mock
     private DateAttendeeRepository dateAttendeeRepository;
     @Mock
+    private DateEventRepository dateEventRepository;
+    @Mock
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
+    @Mock
+    private NotificationService notificationService;
 
     @Test
     public void acceptAttendeeRequest_shouldWorkWithSuccess() {
@@ -43,6 +52,7 @@ public class DateAttendeeServiceTest {
                 .id(new DateAttendeeId(dateId, userId))
                 .build());
         when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).title("Pool night").build()));
         when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(optionalDateAttendee);
 
         // when
@@ -50,6 +60,7 @@ public class DateAttendeeServiceTest {
 
         // then
         Mockito.verify(dateAttendeeRepository, times(1)).save(optionalDateAttendee.get());
+        verify(notificationService, times(1)).notifyAttendeeAccepted(eq(userId), eq(dateId), eq("Pool night"));
         assertThat(optionalDateAttendee.get().getStatus()).isEqualTo(JoinDateStatus.ACCEPTED);
     }
 
@@ -61,6 +72,7 @@ public class DateAttendeeServiceTest {
         UUID currentUser = UUID.randomUUID();
 
         when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).title("Pool night").build()));
         when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(Optional.empty());
 
         // when
@@ -71,5 +83,6 @@ public class DateAttendeeServiceTest {
 
         // then
         Mockito.verify(dateAttendeeRepository, times(0)).save(any(DateAttendee.class));
+        verify(notificationService, times(0)).notifyAttendeeAccepted(any(), any(), any());
     }
 }

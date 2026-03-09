@@ -10,6 +10,8 @@ import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.repositories.ChatMessageRepository;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.repositories.UserRepository;
+import com.slozic.dater.services.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,8 @@ public class DateChatService {
     private final DateEventRepository dateEventRepository;
     private final DateAttendeeRepository dateAttendeeRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public ChatMessagesResponse getMessagesForDate(final String dateId, final UUID currentUserId) {
@@ -30,7 +34,10 @@ public class DateChatService {
         final ChatParticipants participants = resolveParticipants(parsedDateId);
         validateParticipantAccess(currentUserId, participants);
 
-        final List<ChatMessageDto> messages = chatMessageRepository.findAllByDateIdOrderByCreatedAtAsc(parsedDateId)
+        final List<ChatMessageDto> messages = chatMessageRepository.findAllByDateIdAndParticipantUserIdOrderByCreatedAtAsc(
+                        parsedDateId,
+                        participants.acceptedAttendeeId()
+                )
                 .stream()
                 .map(ChatMessageDto::from)
                 .toList();
@@ -57,8 +64,18 @@ public class DateChatService {
                 .dateId(parsedDateId)
                 .senderId(currentUserId)
                 .recipientId(recipientId)
+                .participantUserId(participants.acceptedAttendeeId())
                 .message(message)
                 .build());
+        final String senderUsername = userRepository.findOneById(currentUserId)
+                .map(user -> user.getUsername() == null ? "Someone" : user.getUsername())
+                .orElse("Someone");
+        notificationService.notifyNewChatMessage(
+                recipientId,
+                parsedDateId,
+                participants.dateTitle(),
+                senderUsername
+        );
         return ChatMessageDto.from(saved);
     }
 
@@ -72,7 +89,7 @@ public class DateChatService {
             throw new DateEventException("Chat is available only after attendee acceptance.");
         }
         final UUID acceptedAttendeeId = acceptedAttendees.get(0).getId().getAttendeeId();
-        return new ChatParticipants(ownerId, acceptedAttendeeId);
+        return new ChatParticipants(ownerId, acceptedAttendeeId, date.getTitle());
     }
 
     private void validateParticipantAccess(final UUID currentUserId, final ChatParticipants participants) {
@@ -81,6 +98,6 @@ public class DateChatService {
         }
     }
 
-    private record ChatParticipants(UUID ownerId, UUID acceptedAttendeeId) {
+    private record ChatParticipants(UUID ownerId, UUID acceptedAttendeeId, String dateTitle) {
     }
 }

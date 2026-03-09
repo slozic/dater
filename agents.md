@@ -29,6 +29,16 @@
   - New integration tests for `POST /auth/refresh` and date chat endpoints.
   - Updated legacy integration fixtures/tests for attendee `status` model and `includePast` defaults.
   - Testcontainers dependency updated for local Docker Desktop compatibility.
+- Chat thread isolation update:
+  - New migration `V13__scope_chat_messages_by_thread.sql` to scope messages by active accepted attendee thread.
+  - Chat reads/writes are now thread-scoped (`date_id + participant_user_id`) to avoid showing previous accepted-user conversations.
+- Added modular in-app notifications backend:
+  - New `notifications` table (`V14__add_notifications.sql`) and endpoints `GET /notifications`, `PUT /notifications/read-all`.
+  - Notifications are generated for `ATTENDEE_ACCEPTED` and `CHAT_MESSAGE` events.
+- Added push token support for mobile push delivery:
+  - Added `users.push_token` (`V15__add_push_token_to_users.sql`).
+  - New endpoint `PUT /users/push-token`.
+  - Notification service now sends Expo push requests when a recipient has a push token.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -82,6 +92,17 @@
   - `components/ui/OptionsPopover.tsx` for consistent options menu modal behavior.
   - `components/ui/OptionsMenuItem.tsx` for shared menu-row rendering (icon, active, destructive, disabled states).
   - Refactored My Dates, Date Details, and Profile to use these shared components.
+- Date details UX updates:
+  - Fixed request count to exclude owner/self entries.
+  - Moved chat CTA into context-aware request/join areas and removed chat from Options menu.
+  - Accepted-state UX now shows a clearer message + direct `Send message` CTA for both owner/accepted attendee flows.
+- Added modular notifications UI on mobile:
+  - New reusable `components/ui/NotificationsModal.tsx`.
+  - Profile Settings now includes `Notifications` with unread count and read-all behavior.
+  - Added lightweight global unread badge on Profile tab icon.
+- Added push registration client flow:
+  - Added `expo-notifications` + `expo-device` and push token registration/upload flow.
+  - Added Expo Go/dev guards so push registration is skipped there, avoiding startup errors outside dev builds.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -103,6 +124,8 @@
 ## Pending Mobile Port Tasks
 - Report / block users.
 - Complete final UI polish pass (spacing/alignment consistency across remaining screens).
+- Add notification deep-link tap handling (open related date/chat from in-app/push notifications).
+- Add notification preferences toggles (in-app + push per notification type).
 
 ## Location UX Options (evaluated)
 - Manual entry only (current): fastest, no API keys or billing.
