@@ -7,6 +7,7 @@ import com.slozic.dater.models.NotificationType;
 import com.slozic.dater.repositories.AppNotificationRepository;
 import com.slozic.dater.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationService {
     private final AppNotificationRepository appNotificationRepository;
     private final UserRepository userRepository;
@@ -70,8 +72,16 @@ public class NotificationService {
     }
 
     private void sendPushIfEnabled(final UUID userId, final String title, final String body, final UUID dateId) {
-        userRepository.findOneById(userId)
-                .map(user -> user.getPushToken())
-                .ifPresent(pushToken -> pushNotificationDeliveryService.sendPush(pushToken, title, body, dateId.toString()));
+        userRepository.findOneById(userId).ifPresentOrElse(
+                user -> {
+                    final String pushToken = user.getPushToken();
+                    if (pushToken == null || pushToken.isBlank()) {
+                        log.info("Push skipped for user {}: no push token stored.", userId);
+                        return;
+                    }
+                    pushNotificationDeliveryService.sendPush(pushToken, title, body, dateId.toString());
+                },
+                () -> log.warn("Push skipped: user {} not found.", userId)
+        );
     }
 }

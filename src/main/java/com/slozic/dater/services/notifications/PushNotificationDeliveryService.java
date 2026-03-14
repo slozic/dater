@@ -22,6 +22,7 @@ public class PushNotificationDeliveryService {
 
     public void sendPush(final String expoPushToken, final String title, final String body, final String dateId) {
         if (expoPushToken == null || expoPushToken.isBlank()) {
+            log.debug("Push skipped: missing Expo token.");
             return;
         }
         try {
@@ -38,7 +39,14 @@ public class PushNotificationDeliveryService {
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
-            HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+            final HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            final String responseBody = response.body() == null ? "" : response.body();
+            log.info(
+                    "Push send attempted. status={}, tokenSuffix={}, response={}",
+                    response.statusCode(),
+                    expoPushToken.length() > 8 ? expoPushToken.substring(expoPushToken.length() - 8) : expoPushToken,
+                    responseBody
+            );
         } catch (Exception ex) {
             log.warn("Failed to send push notification to Expo token: {}", ex.getMessage());
         }

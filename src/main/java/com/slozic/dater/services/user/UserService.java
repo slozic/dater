@@ -10,6 +10,7 @@ import com.slozic.dater.models.User;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -96,6 +98,14 @@ public class UserService {
         final String sanitizedToken = request.pushToken() == null ? null : request.pushToken().trim();
         user.setPushToken(sanitizedToken == null || sanitizedToken.isEmpty() ? null : sanitizedToken);
         userRepository.save(user);
+        log.info(
+                "Updated push token for user {}. tokenPresent={}, tokenSuffix={}",
+                currentUser,
+                user.getPushToken() != null,
+                user.getPushToken() != null && user.getPushToken().length() > 8
+                        ? user.getPushToken().substring(user.getPushToken().length() - 8)
+                        : user.getPushToken()
+        );
     }
 
 }

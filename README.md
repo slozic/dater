@@ -25,6 +25,12 @@ Users, Dates, Date Attendees ->
 - Run docker compose to start the postgres instance
 - Run the app through IDE e.g intellij or springboot mvn helper 
 
+## Notification docs
+- Backend notifications implementation and support:
+  - `README_NOTIFICATIONS_BACKEND.md`
+- Mobile dev client + Firebase push setup (sibling mobile repo):
+  - `../dater-mobile/README_DEV_CLIENT_AND_PUSH_SETUP.md`
+
 ## Next features and updates
 - Enable user profile updates, adding images
 - Enable date updates, adding images

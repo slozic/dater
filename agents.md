@@ -39,6 +39,9 @@
   - Added `users.push_token` (`V15__add_push_token_to_users.sql`).
   - New endpoint `PUT /users/push-token`.
   - Notification service now sends Expo push requests when a recipient has a push token.
+- Added backend notification/push troubleshooting and setup docs:
+  - `README_NOTIFICATIONS_BACKEND.md` (backend notification model, endpoints, delivery flow, logs).
+  - `README.md` now links to backend/mobile notification setup docs.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -102,7 +105,16 @@
   - Added lightweight global unread badge on Profile tab icon.
 - Added push registration client flow:
   - Added `expo-notifications` + `expo-device` and push token registration/upload flow.
-  - Added Expo Go/dev guards so push registration is skipped there, avoiding startup errors outside dev builds.
+  - Added resilient registration + retry on app foreground to recover when token is initially unavailable.
+- Added Android dev-client push setup docs in mobile repo:
+  - `README_DEV_CLIENT_AND_PUSH_SETUP.md` (Expo account/EAS build + Firebase setup + FCM credentials troubleshooting).
+  - `README.md` in mobile now links to this setup guide.
+- Added notification deep-link handling on mobile:
+  - Tapping push notifications now opens related chat (`/date/chat/[id]`) when `dateId` is included.
+  - Added in-app notification row tap to open related chat from Profile notifications modal.
+- Fixed profile notifications consistency:
+  - Notifications modal now keeps history visible after read-all (instead of immediately showing empty state).
+  - Tab/profile unread badge is cleared while previously fetched notifications remain visible as read.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -124,7 +136,6 @@
 ## Pending Mobile Port Tasks
 - Report / block users.
 - Complete final UI polish pass (spacing/alignment consistency across remaining screens).
-- Add notification deep-link tap handling (open related date/chat from in-app/push notifications).
 - Add notification preferences toggles (in-app + push per notification type).
 
 ## Location UX Options (evaluated)
