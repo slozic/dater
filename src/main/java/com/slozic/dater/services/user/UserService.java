@@ -86,6 +86,15 @@ public class UserService {
         if (request.dateListGenderFilter() != null) {
             user.setDateListGenderFilter(request.dateListGenderFilter().toUpperCase());
         }
+        if (request.attendeeAcceptedNotificationsEnabled() != null) {
+            user.setAttendeeAcceptedNotificationsEnabled(request.attendeeAcceptedNotificationsEnabled());
+        }
+        if (request.dateRequestNotificationsEnabled() != null) {
+            user.setDateRequestNotificationsEnabled(request.dateRequestNotificationsEnabled());
+        }
+        if (request.chatMessageNotificationsEnabled() != null) {
+            user.setChatMessageNotificationsEnabled(request.chatMessageNotificationsEnabled());
+        }
 
         return UserDto.from(userRepository.save(user));
     }
@@ -98,7 +107,7 @@ public class UserService {
         final String sanitizedToken = request.pushToken() == null ? null : request.pushToken().trim();
         user.setPushToken(sanitizedToken == null || sanitizedToken.isEmpty() ? null : sanitizedToken);
         userRepository.save(user);
-        log.info(
+        log.debug(
                 "Updated push token for user {}. tokenPresent={}, tokenSuffix={}",
                 currentUser,
                 user.getPushToken() != null,

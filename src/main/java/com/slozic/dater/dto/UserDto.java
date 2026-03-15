@@ -10,7 +10,10 @@ public record UserDto(
         String email,
         String birthday,
         String gender,
-        String dateListGenderFilter) {
+        String dateListGenderFilter,
+        boolean attendeeAcceptedNotificationsEnabled,
+        boolean dateRequestNotificationsEnabled,
+        boolean chatMessageNotificationsEnabled) {
     public static UserDto from(final User user) {
         return new UserDto(
                 user.getId().toString(),
@@ -20,6 +23,9 @@ public record UserDto(
                 user.getEmail(),
                 user.getBirthday() == null ? null : user.getBirthday().toString(),
                 user.getGender(),
-                user.getDateListGenderFilter());
+                user.getDateListGenderFilter(),
+                user.isAttendeeAcceptedNotificationsEnabled(),
+                user.isDateRequestNotificationsEnabled(),
+                user.isChatMessageNotificationsEnabled());
     }
 }

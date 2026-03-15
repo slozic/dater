@@ -12,9 +12,11 @@ import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.models.DateAttendeeId;
 import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
+import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +27,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DateAttendeesService {
     private final DateAttendeeRepository dateAttendeeRepository;
     private final DateEventRepository dateEventRepository;
+    private final UserRepository userRepository;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
     private final NotificationService notificationService;
 
@@ -60,9 +64,10 @@ public class DateAttendeesService {
 
     @Transactional
     public DateAttendeeStatusResponse addAttendeeToDate(String dateId, UUID currentUserId) {
-        dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
+        final Date date = dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
                 new DateEventException("Date event not found: " + dateId));
         createNewDateAttendee(dateId, currentUserId);
+        notifyDateOwnerAboutNewRequestSafely(date, currentUserId);
         return new DateAttendeeStatusResponse(JoinDateStatus.ON_WAITLIST, currentUserId.toString(), dateId);
     }
 
@@ -78,6 +83,21 @@ public class DateAttendeesService {
                                 .build()));
     }
 
+    private void notifyDateOwnerAboutNewRequest(final Date date, final UUID requesterUserId) {
+        if (requesterUserId.equals(date.getCreatedBy())) {
+            return;
+        }
+        final String requesterUsername = userRepository.findOneById(requesterUserId)
+                .map(com.slozic.dater.models.User::getUsername)
+                .orElse("Someone");
+        notificationService.notifyDateRequestReceived(
+                date.getCreatedBy(),
+                date.getId(),
+                date.getTitle(),
+                requesterUsername
+        );
+    }
+
     @Transactional
     public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
@@ -87,9 +107,35 @@ public class DateAttendeesService {
                 .orElseThrow(() -> new DateEventException("Date event not found: " + dateId));
         final boolean changedToAccepted = acceptDateAttendee(parsedDateId, acceptedUserId, currentUser);
         if (changedToAccepted) {
-            notificationService.notifyAttendeeAccepted(acceptedUserId, parsedDateId, date.getTitle());
+            notifyAttendeeAcceptedSafely(acceptedUserId, parsedDateId, date.getTitle());
         }
         return new DateAttendeeStatusResponse(JoinDateStatus.ACCEPTED, userId, dateId);
+    }
+
+    private void notifyDateOwnerAboutNewRequestSafely(final Date date, final UUID requesterUserId) {
+        try {
+            notifyDateOwnerAboutNewRequest(date, requesterUserId);
+        } catch (RuntimeException ex) {
+            log.warn(
+                    "Date request notification failed for dateId={}, requesterUserId={}, reason={}",
+                    date.getId(),
+                    requesterUserId,
+                    ex.getMessage()
+            );
+        }
+    }
+
+    private void notifyAttendeeAcceptedSafely(final UUID acceptedUserId, final UUID dateId, final String dateTitle) {
+        try {
+            notificationService.notifyAttendeeAccepted(acceptedUserId, dateId, dateTitle);
+        } catch (RuntimeException ex) {
+            log.warn(
+                    "Attendee accepted notification failed for dateId={}, acceptedUserId={}, reason={}",
+                    dateId,
+                    acceptedUserId,
+                    ex.getMessage()
+            );
+        }
     }
 
     private boolean acceptDateAttendee(UUID dateId, UUID userId, UUID currentUser) {

@@ -13,6 +13,7 @@ import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.services.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DateChatService {
     private final DateEventRepository dateEventRepository;
     private final DateAttendeeRepository dateAttendeeRepository;
@@ -70,13 +72,26 @@ public class DateChatService {
         final String senderUsername = userRepository.findOneById(currentUserId)
                 .map(user -> user.getUsername() == null ? "Someone" : user.getUsername())
                 .orElse("Someone");
-        notificationService.notifyNewChatMessage(
-                recipientId,
-                parsedDateId,
-                participants.dateTitle(),
-                senderUsername
-        );
+        notifyChatMessageSafely(recipientId, parsedDateId, participants.dateTitle(), senderUsername);
         return ChatMessageDto.from(saved);
+    }
+
+    private void notifyChatMessageSafely(
+            final UUID recipientId,
+            final UUID dateId,
+            final String dateTitle,
+            final String senderUsername
+    ) {
+        try {
+            notificationService.notifyNewChatMessage(recipientId, dateId, dateTitle, senderUsername);
+        } catch (RuntimeException ex) {
+            log.warn(
+                    "Chat message notification failed for dateId={}, recipientId={}, reason={}",
+                    dateId,
+                    recipientId,
+                    ex.getMessage()
+            );
+        }
     }
 
     private ChatParticipants resolveParticipants(final UUID dateId) {

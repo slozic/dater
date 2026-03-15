@@ -46,6 +46,15 @@ public class User {
 
     private String pushToken;
 
+    @Builder.Default
+    private boolean attendeeAcceptedNotificationsEnabled = true;
+
+    @Builder.Default
+    private boolean dateRequestNotificationsEnabled = true;
+
+    @Builder.Default
+    private boolean chatMessageNotificationsEnabled = true;
+
     @NotNull
     private OffsetDateTime createdAt;
 

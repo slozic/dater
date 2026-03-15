@@ -6,5 +6,8 @@ public record UpdateUserProfileRequest(
         String username,
         String birthday,
         String gender,
-        String dateListGenderFilter) {
+        String dateListGenderFilter,
+        Boolean attendeeAcceptedNotificationsEnabled,
+        Boolean dateRequestNotificationsEnabled,
+        Boolean chatMessageNotificationsEnabled) {
 }

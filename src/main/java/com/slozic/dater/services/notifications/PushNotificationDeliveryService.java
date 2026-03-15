@@ -20,7 +20,13 @@ public class PushNotificationDeliveryService {
 
     private final ObjectMapper objectMapper;
 
-    public void sendPush(final String expoPushToken, final String title, final String body, final String dateId) {
+    public void sendPush(
+            final String expoPushToken,
+            final String title,
+            final String body,
+            final String dateId,
+            final String notificationType
+    ) {
         if (expoPushToken == null || expoPushToken.isBlank()) {
             log.debug("Push skipped: missing Expo token.");
             return;
@@ -30,7 +36,10 @@ public class PushNotificationDeliveryService {
                     "to", expoPushToken,
                     "title", title,
                     "body", body,
-                    "data", Map.of("dateId", dateId == null ? "" : dateId),
+                    "data", Map.of(
+                            "dateId", dateId == null ? "" : dateId,
+                            "notificationType", notificationType == null ? "" : notificationType
+                    ),
                     "sound", "default"
             );
             final String json = objectMapper.writeValueAsString(List.of(payload));
@@ -41,7 +50,7 @@ public class PushNotificationDeliveryService {
                     .build();
             final HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
             final String responseBody = response.body() == null ? "" : response.body();
-            log.info(
+            log.debug(
                     "Push send attempted. status={}, tokenSuffix={}, response={}",
                     response.statusCode(),
                     expoPushToken.length() > 8 ? expoPushToken.substring(expoPushToken.length() - 8) : expoPushToken,

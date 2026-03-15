@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +104,35 @@ class DateChatServiceTest {
         assertThat(dto.recipientId()).isEqualTo(ownerId.toString());
         verify(chatMessageRepository).save(any(ChatMessage.class));
         verify(notificationService).notifyNewChatMessage(ownerId, dateId, "Pool date", "guest");
+    }
+
+    @Test
+    void sendMessage_shouldSucceedWhenNotificationFails() {
+        final UUID dateId = UUID.randomUUID();
+        final UUID ownerId = UUID.randomUUID();
+        final UUID acceptedAttendeeId = UUID.randomUUID();
+        final Date date = Date.builder().id(dateId).createdBy(ownerId).title("Pool date").build();
+        final DateAttendee acceptedAttendee = DateAttendee.builder()
+                .id(new DateAttendeeId(dateId, acceptedAttendeeId))
+                .status(ACCEPTED)
+                .build();
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(date));
+        when(dateAttendeeRepository.findAcceptedAttendeesForDateExcludingUser(dateId, ownerId))
+                .thenReturn(List.of(acceptedAttendee));
+        when(userRepository.findOneById(ownerId)).thenReturn(Optional.of(User.builder().id(ownerId).username("owner").build()));
+        when(chatMessageRepository.save(any(ChatMessage.class))).thenAnswer(invocation -> {
+            final ChatMessage message = invocation.getArgument(0);
+            message.setId(UUID.randomUUID());
+            return message;
+        });
+        doThrow(new RuntimeException("notification-failure"))
+                .when(notificationService).notifyNewChatMessage(acceptedAttendeeId, dateId, "Pool date", "owner");
+
+        final ChatMessageDto dto = dateChatService.sendMessage(dateId.toString(), ownerId, "hello");
+
+        assertThat(dto.message()).isEqualTo("hello");
+        verify(chatMessageRepository).save(any(ChatMessage.class));
+        verify(notificationService).notifyNewChatMessage(acceptedAttendeeId, dateId, "Pool date", "owner");
     }
 
     @Test

@@ -259,4 +259,41 @@ public class DateAttendeeControllerIT extends IntegrationTest {
         assertThat(mvcResult.getResolvedException() instanceof AttendeeNotFoundException).isTrue();
         assertThat(mvcResult.getResolvedException().getMessage()).isEqualTo("Attendee not found for date: " + dateId);
     }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql",
+            "classpath:fixtures/loadDateEvents.sql",
+            "classpath:fixtures/loadDateAttendees.sql"})
+    public void addAttendeeToDate_shouldCreateDateRequestNotificationForOwner() throws Exception {
+        // given
+        String ownerUserId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String requesterId = "c041718c-2be3-4ddc-9155-7690bb123333";
+        String requesterUsername = "julie";
+        String dateTitle = "Date in the Alps";
+        String ownerToken = jwsBuilder.getJwt(ownerUserId);
+        String requesterToken = jwsBuilder.getJwt(requesterId);
+        String dateId = "be62daa9-6cda-45ea-8b0b-4ea15f735e53";
+
+        // when
+        var requestResult = mockMvc.perform(
+                        post("/dates/{id}/attendees", dateId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + requesterToken)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        var notificationsResult = mockMvc.perform(
+                        get("/notifications")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + ownerToken)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        // then
+        assertThat(requestResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(notificationsResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(notificationsResult.getResponse().getContentAsString()).contains("\"type\":\"DATE_REQUEST_RECEIVED\"");
+        assertThat(notificationsResult.getResponse().getContentAsString()).contains("\"relatedDateId\":\"" + dateId + "\"");
+        assertThat(notificationsResult.getResponse().getContentAsString())
+                .contains(requesterUsername + " requested to join your date \\\"" + dateTitle + "\\\".");
+    }
 }
