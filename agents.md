@@ -42,6 +42,13 @@
 - Added backend notification/push troubleshooting and setup docs:
   - `README_NOTIFICATIONS_BACKEND.md` (backend notification model, endpoints, delivery flow, logs).
   - `README.md` now links to backend/mobile notification setup docs.
+- Notification preference + resiliency backend follow-ups:
+  - Added `DATE_REQUEST_RECEIVED` notification type and owner notification trigger on new attendee requests.
+  - Added per-user notification preference fields + migration (`V16__add_notification_preferences_to_users.sql`).
+  - Notification creation/sending now respects per-type preferences.
+  - Push payload now includes `notificationType` for mobile deep-link routing.
+  - Hardened attendee/chat flows to avoid failing core actions when notification dispatch fails.
+  - Expanded unit/integration tests for notification preferences, date-request notification creation, and attendee-accepted notification paths.
 
 ## Web Frontend (dater-frontend)
 - Date list uses optional geo filter; UI simplified to radius + “Use my location”.
@@ -99,10 +106,10 @@
   - Fixed request count to exclude owner/self entries.
   - Moved chat CTA into context-aware request/join areas and removed chat from Options menu.
   - Accepted-state UX now shows a clearer message + direct `Send message` CTA for both owner/accepted attendee flows.
-- Added modular notifications UI on mobile:
-  - New reusable `components/ui/NotificationsModal.tsx`.
-  - Profile Settings now includes `Notifications` with unread count and read-all behavior.
-  - Added lightweight global unread badge on Profile tab icon.
+- Added notification preferences UI on mobile:
+  - Replaced notification inbox modal with inline `Notification settings` toggles in Profile settings.
+  - Supported toggles: `New messages`, `New requests on my dates`, `Request accepted`.
+  - Removed stale notifications modal component and related unread/read-all client flow.
 - Added push registration client flow:
   - Added `expo-notifications` + `expo-device` and push token registration/upload flow.
   - Added resilient registration + retry on app foreground to recover when token is initially unavailable.
@@ -110,11 +117,21 @@
   - `README_DEV_CLIENT_AND_PUSH_SETUP.md` (Expo account/EAS build + Firebase setup + FCM credentials troubleshooting).
   - `README.md` in mobile now links to this setup guide.
 - Added notification deep-link handling on mobile:
-  - Tapping push notifications now opens related chat (`/date/chat/[id]`) when `dateId` is included.
-  - Added in-app notification row tap to open related chat from Profile notifications modal.
-- Fixed profile notifications consistency:
-  - Notifications modal now keeps history visible after read-all (instead of immediately showing empty state).
-  - Tab/profile unread badge is cleared while previously fetched notifications remain visible as read.
+  - Push payload now includes `notificationType`.
+  - Tap routing is type-aware:
+    - `CHAT_MESSAGE` -> `/date/chat/[id]`
+    - other date-related types (for example `DATE_REQUEST_RECEIVED`) -> `/date/[id]`.
+- Chat screen behavior refinements:
+  - Chat opens scrolled to latest messages.
+  - Android keyboard behavior stabilized with explicit keyboard-height handling for reliable composer visibility.
+- Expo Go compatibility hardening:
+  - Push registration + notification bridge now guard Expo Go runtime and lazy-load `expo-notifications` only where supported.
+- Header/layout polish:
+  - Chat header keeps title left (`Date chat`) with date-title chip in header right.
+  - Date Details uses content-level top meta row (date-title chip on left, options on right) and reduced top safe-area padding.
+  - Public Profile removed redundant in-content title, aligned top spacing with stack header, and reordered fields to `Name`, `Username`, `Gender`.
+- Expo web attendee flow fix:
+  - Accept/Reject confirmation now uses web-compatible `confirm(...)` on `Platform.OS === 'web'` so Expo web testing can trigger attendee actions reliably.
 
 ## Completed Mobile Port Tasks
 - Date images (view/upload/delete) in Date Details.
@@ -136,7 +153,6 @@
 ## Pending Mobile Port Tasks
 - Report / block users.
 - Complete final UI polish pass (spacing/alignment consistency across remaining screens).
-- Add notification preferences toggles (in-app + push per notification type).
 
 ## Location UX Options (evaluated)
 - Manual entry only (current): fastest, no API keys or billing.
