@@ -5,12 +5,13 @@ import com.slozic.dater.dto.enums.ImageCategory;
 import com.slozic.dater.dto.response.userprofile.ProfileImageCreatedResponse;
 import com.slozic.dater.dto.response.userprofile.ProfileImageData;
 import com.slozic.dater.dto.response.userprofile.ProfileImageResponse;
+import com.slozic.dater.exceptions.user.UserProfileImageAccessException;
 import com.slozic.dater.exceptions.user.UserProfileImageException;
 import com.slozic.dater.models.UserImage;
 import com.slozic.dater.repositories.ProfileImageRepository;
 import com.slozic.dater.services.images.strategy.ImageStorageStrategy;
 import com.slozic.dater.services.images.strategy.ImageStorageStrategyFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,13 +22,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileImageService {
-    @Autowired
-    private ImageStorageStrategyFactory imageStorageStrategyFactory;
-    @Autowired
-    private ProfileImageRepository profileImageRepository;
-    @Autowired
-    private ImageUrlService imageUrlService;
+    private final ImageStorageStrategyFactory imageStorageStrategyFactory;
+    private final ProfileImageRepository profileImageRepository;
+    private final ImageUrlService imageUrlService;
 
     public ProfileImageCreatedResponse createProfileImages(String userId, List<MultipartFile> images) {
         getImageStorageStrategy().validate(images, userId);
@@ -86,10 +85,18 @@ public class ProfileImageService {
         return profileImageDataList;
     }
 
-    public Boolean deleteImage(String userId, String imageId) {
-        profileImageRepository.findById(UUID.fromString(imageId))
+    public Boolean deleteImage(final String userId, final String imageId) {
+        final UUID parsedUserId = UUID.fromString(userId);
+        final UUID parsedImageId = UUID.fromString(imageId);
+        profileImageRepository.findById(parsedImageId)
                 .ifPresentOrElse(userImage -> {
-                    profileImageRepository.deleteById(UUID.fromString(imageId));
+                    if (!userImage.getUserId().equals(parsedUserId)) {
+                        throw new UserProfileImageAccessException(
+                                "User does not have permission to delete image: " + imageId
+                        );
+                    }
+                    getImageStorageStrategy().deleteImage(userImage.getImagePath());
+                    profileImageRepository.deleteById(parsedImageId);
                 }, () -> {
                     throw new UserProfileImageException("Problem occurred while deleting the image: " + imageId);
                 });

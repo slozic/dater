@@ -33,4 +33,20 @@ public class DateAttendee {
     @JoinColumn(name = "dateId", nullable = false, insertable = false, updatable = false)
     private Date date;
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        final DateAttendee that = (DateAttendee) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

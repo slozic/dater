@@ -148,12 +148,15 @@ public class DateEventService {
 
     private Date saveDateEvent(final CreateDateEventRequest request, String userId) {
         Date date = Date.builder()
-                .title(request.title())
-                .description(request.description())
-                .location(request.location())
+                .title(request.title().trim())
+                .description(request.description().trim())
+                .location(request.location().trim())
                 .latitude(request.latitude())
                 .longitude(request.longitude())
-                .scheduledTime(OffsetDateTime.of(LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneOffset.UTC))
+                .scheduledTime(OffsetDateTime.of(
+                        LocalDateTime.parse(request.scheduledTime().trim(), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        ZoneOffset.UTC
+                ))
                 .createdBy(UUID.fromString(userId))
                 .build();
         return dateEventRepository.save(date);
@@ -196,13 +199,13 @@ public class DateEventService {
         Date dateEvent = validateUserDatePermissions(dateId);
 
         if (request.title() != null) {
-            dateEvent.setTitle(request.title());
+            dateEvent.setTitle(request.title().trim());
         }
         if (request.description() != null) {
-            dateEvent.setDescription(request.description());
+            dateEvent.setDescription(request.description().trim());
         }
         if (request.location() != null) {
-            dateEvent.setLocation(request.location());
+            dateEvent.setLocation(request.location().trim());
         }
         if (request.latitude() != null) {
             dateEvent.setLatitude(request.latitude());
@@ -212,7 +215,7 @@ public class DateEventService {
         }
         if (request.scheduledTime() != null) {
             dateEvent.setScheduledTime(OffsetDateTime.of(
-                    LocalDateTime.parse(request.scheduledTime(), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                    LocalDateTime.parse(request.scheduledTime().trim(), DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     ZoneOffset.UTC));
         }
 

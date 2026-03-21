@@ -11,7 +11,7 @@ import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     public UserDto getCurrentAuthenticatedUser() throws UnauthorizedException {
@@ -43,13 +43,25 @@ public class UserService {
 
     @Transactional
     public UserDto doUserRegistration(final UserRegistrationRequest request) {
-        final Optional<User> userExists = userRepository.findOneByEmail(request.email());
-        if (userExists.isPresent()) {
-            throw new IllegalArgumentException("Cannot create user!");
+        final String requestedEmail = request.email() == null ? null : request.email().trim();
+        final String requestedUsername = request.username() == null ? null : request.username().trim();
+        if (requestedEmail == null || requestedEmail.isBlank()) {
+            throw new IllegalArgumentException("Email must not be blank.");
+        }
+        if (requestedUsername == null || requestedUsername.isBlank()) {
+            throw new IllegalArgumentException("Username must not be blank.");
+        }
+        if (userRepository.findOneByEmail(requestedEmail).isPresent()) {
+            throw new IllegalArgumentException("Email is already taken.");
+        }
+        if (userRepository.findOneByUsername(requestedUsername).isPresent()) {
+            throw new IllegalArgumentException("Username is already taken.");
         }
         User user = User.fromUserRegistrationRequest(request)
                 .toBuilder()
-                .password(bCryptPasswordEncoder.encode(request.password()))
+                .email(requestedEmail)
+                .username(requestedUsername)
+                .password(passwordEncoder.encode(request.password()))
                 .build();
         userRepository.save(user);
         return UserDto.from(user);

@@ -2,6 +2,7 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.enums.JoinDateStatus;
 import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
 import com.slozic.dater.models.DateAttendeeId;
@@ -56,7 +57,7 @@ public class DateAttendeeServiceTest {
                 .id(new DateAttendeeId(dateId, userId))
                 .build());
         when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
-        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).title("Pool night").build()));
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).createdBy(currentUser).title("Pool night").build()));
         when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(optionalDateAttendee);
 
         // when
@@ -76,7 +77,7 @@ public class DateAttendeeServiceTest {
         UUID currentUser = UUID.randomUUID();
 
         when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
-        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).title("Pool night").build()));
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).createdBy(currentUser).title("Pool night").build()));
         when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(Optional.empty());
 
         // when
@@ -122,7 +123,7 @@ public class DateAttendeeServiceTest {
                 .id(new DateAttendeeId(dateId, userId))
                 .build());
         when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
-        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).title("Pool night").build()));
+        when(dateEventRepository.findById(dateId)).thenReturn(Optional.of(Date.builder().id(dateId).createdBy(currentUser).title("Pool night").build()));
         when(dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, userId))).thenReturn(optionalDateAttendee);
         doThrow(new RuntimeException("notification-failure"))
                 .when(notificationService).notifyAttendeeAccepted(userId, dateId, "Pool night");
@@ -134,5 +135,25 @@ public class DateAttendeeServiceTest {
         assertThat(response.joinDateStatus()).isEqualTo(JoinDateStatus.ACCEPTED);
         verify(dateAttendeeRepository, times(1)).save(optionalDateAttendee.get());
         verify(notificationService, times(1)).notifyAttendeeAccepted(userId, dateId, "Pool night");
+    }
+
+    @Test
+    public void acceptAttendeeRequest_shouldFailWhenCurrentUserIsNotDateOwner() {
+        // given
+        UUID dateId = UUID.randomUUID();
+        UUID attendeeId = UUID.randomUUID();
+        UUID currentUser = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        when(jwtAuthenticatedUserService.getCurrentUserOrThrow()).thenReturn(currentUser);
+        when(dateEventRepository.findById(dateId))
+                .thenReturn(Optional.of(Date.builder().id(dateId).createdBy(ownerId).title("Pool night").build()));
+
+        // when + then
+        assertThrows(
+                DateEventAccessPermissionException.class,
+                () -> dateAttendeesService.acceptAttendeeRequest(dateId.toString(), attendeeId.toString())
+        );
+        verify(dateAttendeeRepository, times(0)).save(any(DateAttendee.class));
+        verify(notificationService, times(0)).notifyAttendeeAccepted(any(), any(), any());
     }
 }

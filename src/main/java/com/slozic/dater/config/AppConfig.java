@@ -10,6 +10,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.net.http.HttpClient;
 import java.util.List;
 
 @Configuration
@@ -22,6 +23,11 @@ public class AppConfig {
     @Bean
     public JWTUtils jwtUtils(@Value("${jwt.signing-key}") final String signingKey) {
         return new JWTUtils(signingKey);
+    }
+
+    @Bean
+    public HttpClient httpClient() {
+        return HttpClient.newHttpClient();
     }
 
     @Bean

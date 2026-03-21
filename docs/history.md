@@ -159,6 +159,44 @@ It is intentionally kept as a historical running log for future reference.
 - Report / block users.
 - Complete final UI polish pass (spacing/alignment consistency across remaining screens).
 
+## 2026-03-21 Full Code Review (Backend) Follow-up
+- Context:
+  - This section captures backend hardening actions implemented after a strict full-project review.
+  - The goal was to close high-confidence security/correctness issues and keep a checklist reference for future sessions.
+- Status checklist:
+  - `[x] C1` Enforced date-owner authorization for attendee moderation (`accept`/`reject`) in `DateAttendeesService`.
+  - `[x] C2` Enforced profile-image ownership on delete in `ProfileImageService`.
+  - `[x] C3` Added username uniqueness checks in registration and DB-level uniqueness via `V17__add_unique_constraint_to_users_username.sql`.
+  - `[x] H2` Added dedicated `404` handling for `DateEventNotFoundException`.
+  - `[x] H3` Added explicit exception mappings (`AttendeeAlreadyExistsException -> 409`, `IllegalArgumentException -> 400`, `DateTimeException -> 400`, profile-image access -> `403`).
+  - `[x] H5` Switched push delivery to shared injected `HttpClient` bean.
+  - `[x] H6` Added DTO/controller validation for date create/update and trim/sanitize handling in service layer.
+  - `[x] M1` Profile-image delete now removes both storage file and DB record.
+  - `[x] M2` Refactored `ProfileImageService` to constructor injection.
+  - `[x] M3` Removed unused auth DAO implementations (`DefaultApplicationUserDaoImpl`, `H2ApplicationUserDaoImpl`) and deleted dead helper in postgres DAO.
+  - `[x] M4` Clarified auth DAO contract naming (`selectApplicationUserByEmail`) and aligned call sites/messages.
+  - `[x] L2` Removed commented-out dead code in `JWTUtils`.
+  - `[x] L3` Removed unnecessary `Serializable` from `JwtAuthenticationEntryPoint`.
+  - `[x] L7` Added `equals`/`hashCode` to `DateAttendee` based on embedded id.
+  - `[~] H1` Config moved to env-overridable values (`DB_*`, `JWT_SIGNING_KEY`) with local defaults preserved.
+  - `[ ] H4` Early legacy migration seed cleanup intentionally deferred to avoid rewriting historical migration behavior.
+  - `[ ] M5` `DateEventResponse` legacy empty fields left unchanged.
+  - `[ ] M6` Notification inbox API still present (not deprecated/removed in this pass).
+  - `[ ] M7` No pagination introduced yet for date/chat list endpoints.
+  - `[ ] M8` Legacy `data.sql` retained as-is.
+  - `[ ] M9` Collection style consistency pass deferred.
+  - `[ ] L1` Entity rename `Date` deferred.
+  - `[ ] L4` Logging aspect broadening/refactor deferred.
+  - `[ ] L5` OpenAPI placeholder metadata unchanged.
+  - `[ ] L6` No additional `ErrorResponse` refactor applied.
+- Verification:
+  - Targeted suite run: `DateAttendeeServiceTest`, `UserServiceTest`, `DateAttendeeControllerIT`, `DateEventControllerIT`, `ProfileImageControllerIT`.
+  - Result: `35 tests`, `0 failures`, `0 errors` (BUILD SUCCESS).
+  - Post-verify follow-up:
+    - `mvn clean verify` exposed a DI mismatch (`UserService` required `BCryptPasswordEncoder` while config exposed `PasswordEncoder` bean type).
+    - Fixed by changing `UserService` (and corresponding unit test mock) to depend on `PasswordEncoder` interface.
+    - Re-validated with `DateAttendeeControllerIT` + `UserServiceTest` (BUILD SUCCESS).
+
 ## Location UX Options (evaluated)
 - Manual entry only (current): fastest, no API keys or billing.
 - Map picker with pin + reverse geocode: needs map SDK + billing; may return address more reliably than POI name.

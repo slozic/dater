@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -56,13 +57,13 @@ public class DateEventController {
     }
 
     @PostMapping
-    public DateEventCreatedResponse createDateEvent(@RequestBody CreateDateEventRequest dateEventRequest) {
+    public DateEventCreatedResponse createDateEvent(@Valid @RequestBody final CreateDateEventRequest dateEventRequest) {
         return dateEventService.createDateEventWithDefaultAttendee(dateEventRequest);
     }
 
     @PutMapping("/{id}")
     public DateEventResponse updateDateEvent(@PathVariable("id") final String dateId,
-                                             @RequestBody UpdateDateEventRequest request) {
+                                             @Valid @RequestBody final UpdateDateEventRequest request) {
         return dateEventService.updateDateEvent(dateId, request);
     }
 

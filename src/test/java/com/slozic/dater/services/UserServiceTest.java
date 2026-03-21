@@ -2,6 +2,7 @@ package com.slozic.dater.services;
 
 import com.slozic.dater.dto.UserDto;
 import com.slozic.dater.dto.request.UpdateUserProfileRequest;
+import com.slozic.dater.dto.request.UserRegistrationRequest;
 import com.slozic.dater.models.User;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
@@ -11,12 +12,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +30,7 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
     @Mock
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
@@ -67,5 +69,23 @@ class UserServiceTest {
         assertThat(user.isAttendeeAcceptedNotificationsEnabled()).isFalse();
         assertThat(user.isDateRequestNotificationsEnabled()).isFalse();
         assertThat(user.isChatMessageNotificationsEnabled()).isTrue();
+    }
+
+    @Test
+    void doUserRegistration_shouldFailWhenUsernameAlreadyExists() {
+        final UserRegistrationRequest request = new UserRegistrationRequest(
+                "John",
+                "Doe",
+                "existing-user",
+                "password",
+                "john@example.com",
+                "1990-01-01",
+                "MALE"
+        );
+        when(userRepository.findOneByEmail("john@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findOneByUsername("existing-user"))
+                .thenReturn(Optional.of(User.builder().id(UUID.randomUUID()).username("existing-user").build()));
+
+        assertThrows(IllegalArgumentException.class, () -> userService.doUserRegistration(request));
     }
 }

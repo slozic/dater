@@ -160,7 +160,35 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(404);
         assertThat(mvcResult.getResolvedException().getClass()).isEqualTo(DateEventNotFoundException.class);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql"})
+    public void createDateEvent_shouldFailWhenTitleIsBlank() throws Exception {
+        // given
+        String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String token = jwsBuilder.getJwt(userId);
+        final CreateDateEventRequest invalidRequest = new CreateDateEventRequest(
+                "   ",
+                "description",
+                "location",
+                null,
+                null,
+                "2024-01-29T20:00"
+        );
+
+        // when
+        var mvcResult = mockMvc.perform(post("/dates")
+                        .content(objectMapper.writeValueAsString(invalidRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andReturn();
+
+        // then
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(400);
     }
 
     @NotNull

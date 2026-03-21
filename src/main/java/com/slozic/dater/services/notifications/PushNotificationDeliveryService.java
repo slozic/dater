@@ -19,6 +19,7 @@ public class PushNotificationDeliveryService {
     private static final String EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 
     private final ObjectMapper objectMapper;
+    private final HttpClient httpClient;
 
     public void sendPush(
             final String expoPushToken,
@@ -48,7 +49,7 @@ public class PushNotificationDeliveryService {
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
-            final HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             final String responseBody = response.body() == null ? "" : response.body();
             log.debug(
                     "Push send attempted. status={}, tokenSuffix={}, response={}",

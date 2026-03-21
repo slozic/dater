@@ -4,9 +4,9 @@ spring:
       - local
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/dater?socketTimeout=30
-    username: app_user
-    password: password
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/dater?socketTimeout=30}
+    username: ${DB_USERNAME:app_user}
+    password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -40,7 +40,7 @@ openapi:
   prod-url: https://dater-api.com
 
 jwt:
-  signing-key: "secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey"
+  signing-key: ${JWT_SIGNING_KEY:secretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkeysecretkey}
 
 user:
   images:

@@ -6,6 +6,7 @@ import com.slozic.dater.dto.response.attendees.DateAttendeeResponse;
 import com.slozic.dater.dto.response.attendees.DateAttendeeStatusResponse;
 import com.slozic.dater.exceptions.attendee.AttendeeAlreadyExistsException;
 import com.slozic.dater.exceptions.attendee.AttendeeNotFoundException;
+import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
 import com.slozic.dater.exceptions.dateevent.DateEventException;
 import com.slozic.dater.models.Date;
 import com.slozic.dater.models.DateAttendee;
@@ -101,10 +102,12 @@ public class DateAttendeesService {
     @Transactional
     public DateAttendeeStatusResponse acceptAttendeeRequest(String dateId, String userId) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        final UUID parsedDateId = UUID.fromString(dateId);
+        final Date date = getDateIfOwnerOrThrow(dateId, currentUser);
+        final UUID parsedDateId = date.getId();
         final UUID acceptedUserId = UUID.fromString(userId);
-        final Date date = dateEventRepository.findById(parsedDateId)
-                .orElseThrow(() -> new DateEventException("Date event not found: " + dateId));
+        if (acceptedUserId.equals(date.getCreatedBy())) {
+            throw new DateEventException("Date owner cannot be accepted as attendee.");
+        }
         final boolean changedToAccepted = acceptDateAttendee(parsedDateId, acceptedUserId, currentUser);
         if (changedToAccepted) {
             notifyAttendeeAcceptedSafely(acceptedUserId, parsedDateId, date.getTitle());
@@ -159,7 +162,12 @@ public class DateAttendeesService {
 
     public DateAttendeeStatusResponse rejectDateAttendeeRequest(String dateId, String attendeeId) {
         UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        rejectAttendee(dateId, attendeeId, currentUser);
+        final Date date = getDateIfOwnerOrThrow(dateId, currentUser);
+        final UUID attendeeUuid = UUID.fromString(attendeeId);
+        if (attendeeUuid.equals(date.getCreatedBy())) {
+            throw new DateEventException("Date owner cannot be rejected as attendee.");
+        }
+        rejectAttendee(date.getId(), attendeeUuid);
         return new DateAttendeeStatusResponse(JoinDateStatus.REJECTED, attendeeId, dateId);
     }
 
@@ -176,14 +184,23 @@ public class DateAttendeesService {
         return new DateAttendeeStatusResponse(JoinDateStatus.NOT_REQUESTED, currentUserId.toString(), dateId);
     }
 
-    private void rejectAttendee(String dateId, String attendeeId, UUID currentUser) {
-        dateAttendeeRepository.findOneById(new DateAttendeeId(UUID.fromString(dateId), UUID.fromString(attendeeId)))
+    private Date getDateIfOwnerOrThrow(final String dateId, final UUID currentUser) {
+        final Date date = dateEventRepository.findById(UUID.fromString(dateId))
+                .orElseThrow(() -> new DateEventException("Date event not found: " + dateId));
+        if (!currentUser.equals(date.getCreatedBy())) {
+            throw new DateEventAccessPermissionException(
+                    "User does not have permission to manage attendees for date: " + dateId
+            );
+        }
+        return date;
+    }
+
+    private void rejectAttendee(final UUID dateId, final UUID attendeeId) {
+        dateAttendeeRepository.findOneById(new DateAttendeeId(dateId, attendeeId))
                 .ifPresentOrElse(
                         attendee -> {
-                            if (!attendee.getId().getAttendeeId().equals(currentUser)) {
-                                attendee.setStatus(JoinDateStatus.REJECTED);
-                                dateAttendeeRepository.save(attendee);
-                            }
+                            attendee.setStatus(JoinDateStatus.REJECTED);
+                            dateAttendeeRepository.save(attendee);
                         },
                         () -> {
                             throw new AttendeeNotFoundException("Attendee not found for date: " + dateId);

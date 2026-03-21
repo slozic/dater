@@ -143,4 +143,27 @@ class ProfileImageControllerIT extends IntegrationTest {
                 .andReturn();
     }
 
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql",
+            "classpath:fixtures/loadUsers.sql"})
+    public void deleteUserProfileImage_shouldFailWhenUserDoesNotOwnImage() throws Exception {
+        // given
+        String ownerId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        String otherUserId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        String otherUserToken = jwsBuilder.getJwt(otherUserId);
+
+        Path path = Paths.get(RESOURCES_DATE_TEST_JPG).toAbsolutePath();
+        var fileBytes = Files.readAllBytes(path);
+        var multipartFile = new MockMultipartFile("files", "image1.jpg", MediaType.IMAGE_JPEG_VALUE, fileBytes);
+        ProfileImageCreatedResponse profileImages = profileImageService.createProfileImages(ownerId, List.of(multipartFile));
+
+        // when
+        var mvcResult = mockMvc.perform(delete("/users/images/{imageId}", profileImages.imageIds().get(0))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + otherUserToken))
+                .andReturn();
+
+        // then
+        assertThat(mvcResult.getResponse().getStatus()).isEqualTo(403);
+    }
+
 }

@@ -19,11 +19,6 @@ public class JWTUtils {
         this.secretKey = secretKey;
     }
 
-/*    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }*/
-
     public String getAccessTokenSubject(String token) {
         final Claims body = parseToken(token).getBody();
         validateTokenType(body, ACCESS_TOKEN_TYPE);
