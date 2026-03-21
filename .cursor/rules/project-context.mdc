@@ -1,0 +1,35 @@
+---
+description: Dater backend context and active conventions
+alwaysApply: true
+---
+
+# Backend Context (`dater`)
+
+## Stack
+- Spring Boot 3, Java 17, PostgreSQL, Flyway, JPA/Hibernate.
+- JWT access + refresh tokens.
+- Test stack: JUnit, MockMvc, Testcontainers.
+
+## Domain flows
+- Dates: create/update/list; list supports geo radius filtering.
+- Attendees: request, accept/reject, cancel while waitlisted.
+- Chat: thread-scoped between date owner and accepted attendee.
+- Notifications:
+  - in-app notifications (`notifications` table)
+  - push notifications via Expo when push token exists
+  - per-type user preferences
+  - deep-link metadata in push payload (`dateId`, `notificationType`)
+
+## Reliability rules
+- Core user actions (accept/reject/send message) should not fail solely because notification dispatch fails.
+- Keep logging level production-friendly; avoid temporary debug noise.
+
+## Coordination with mobile
+- Any backend contract changes must be mirrored in `dater-mobile/lib/api.ts` types and call paths.
+- Keep docs cross-links updated:
+  - backend details in `docs/`
+  - mobile setup in sibling repo `../dater-mobile/docs/`
+
+## Current backlog (high level)
+- Report/block users.
+- Final UI polish pass across screens.

@@ -6,11 +6,17 @@ This document describes the notifications implementation in the Spring backend (
 
 Implemented notification types:
 - `ATTENDEE_ACCEPTED`
+- `DATE_REQUEST_RECEIVED`
 - `CHAT_MESSAGE`
 
 Delivery channels:
 - In-app notifications (persisted in database)
 - Push notifications (Expo push API, when user has stored push token)
+
+Per-user preferences:
+- `attendeeAcceptedNotificationsEnabled`
+- `dateRequestNotificationsEnabled`
+- `chatMessageNotificationsEnabled`
 
 ## Data model
 
@@ -33,6 +39,10 @@ Repository:
   - unread count
   - mark all unread as read
 
+User model additions:
+- `users.push_token`
+- notification preference booleans above
+
 ## API endpoints
 
 Authenticated endpoints:
@@ -47,6 +57,9 @@ Authenticated endpoints:
   - Stores or clears current user's Expo push token.
   - `null` clears token.
 
+- `PUT /users/profile`
+  - Updates user profile fields, including notification preferences.
+
 ## Trigger points
 
 Notifications are created by `NotificationService` from domain events:
@@ -54,12 +67,16 @@ Notifications are created by `NotificationService` from domain events:
 - `notifyAttendeeAccepted(...)`
   - Called when date owner accepts a requester.
 
+- `notifyDateRequestReceived(...)`
+  - Called when a user requests to join a date (target: date owner).
+
 - `notifyNewChatMessage(...)`
   - Called when a new chat message is sent to the other participant.
 
-Both methods:
-1. Persist an in-app notification row.
-2. Try to send push through `PushNotificationDeliveryService`.
+Each path:
+1. checks per-type user preference
+2. persists an in-app notification
+3. attempts push dispatch with deep-link metadata (`dateId`, `notificationType`)
 
 ## Push delivery behavior
 
@@ -71,11 +88,14 @@ Payload includes:
 - `title`
 - `body`
 - `data.dateId`
+- `data.notificationType`
 - `sound`
 
 If token is missing/blank:
 - Push is skipped safely.
 - In-app notification still exists in DB.
+
+Core attendee/chat actions are wrapped to remain resilient even if notification dispatch fails.
 
 ## Logging and troubleshooting
 
@@ -97,9 +117,4 @@ Typical diagnosis flow:
 ## Mobile-side setup reference
 
 Mobile Expo + Firebase setup is documented in:
-- `../dater-mobile/README_DEV_CLIENT_AND_PUSH_SETUP.md`
-
-That guide explains:
-- EAS/dev client workflow
-- Firebase registration (`google-services.json`)
-- Rebuild requirements for native config changes
+- `../../dater-mobile/docs/README_DEV_CLIENT_AND_PUSH_SETUP.md`
