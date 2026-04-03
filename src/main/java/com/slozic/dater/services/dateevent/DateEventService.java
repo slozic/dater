@@ -191,7 +191,8 @@ public class DateEventService {
         Date dateEvent = validateUserDatePermissions(dateId);
         dateEventImageService.deleteAllImages(dateEvent);
         dateAttendeesService.deleteAllAttendees(dateEvent);
-        dateEventRepository.deleteById(UUID.fromString(dateId));
+        dateEventRepository.delete(dateEvent);
+        dateEventRepository.flush();
     }
 
     @Transactional

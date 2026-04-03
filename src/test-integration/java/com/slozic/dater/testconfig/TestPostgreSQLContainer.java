@@ -3,6 +3,7 @@ package com.slozic.dater.testconfig;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.flywaydb.core.Flyway;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.Connection;
@@ -26,6 +27,7 @@ public class TestPostgreSQLContainer extends PostgreSQLContainer<TestPostgreSQLC
         System.setProperty("DB_PASSWORD", this.getPassword());
         // Ensure the UUID extension is installed after the container starts
         installUuidExtension();
+        migrateSchema();
     }
 
     private void installUuidExtension() {
@@ -36,6 +38,14 @@ public class TestPostgreSQLContainer extends PostgreSQLContainer<TestPostgreSQLC
             e.printStackTrace();
             throw new RuntimeException("Failed to install uuid-ossp extension", e);
         }
+    }
+
+    private void migrateSchema() {
+        Flyway.configure()
+                .dataSource(this.getJdbcUrl(), this.getUsername(), this.getPassword())
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
     }
 
     @Override

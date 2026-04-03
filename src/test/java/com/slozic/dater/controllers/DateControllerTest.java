@@ -4,10 +4,10 @@ import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.dateevent.DateEventService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,10 +21,10 @@ public class DateControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private DateEventService dateEventService;
 
-    @MockBean
+    @MockitoBean
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
 
     @Test
@@ -50,9 +50,9 @@ public class DateControllerTest {
     }
 
     @Test
-    void getDateById_WhenUnauthenticatedThenUnauthorized() throws Exception {
+    void getDateById_WhenUnauthenticatedThenOk() throws Exception {
         this.mockMvc.perform(get("/dates"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
 }

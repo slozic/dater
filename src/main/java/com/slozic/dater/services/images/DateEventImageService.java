@@ -148,7 +148,8 @@ public class DateEventImageService {
     private DateImageDeletedResponseList deleteImagesFromDatabaseAndStorage(final String dateId, final List<DateImage> dateImageList) {
         dateImageList.forEach(dateImage -> getImageStorageStrategy()
                 .deleteImage(dateImage.getImagePath()));
-        dateImageRepository.deleteAllInBatch(dateImageList);
+        dateImageRepository.deleteAll(dateImageList);
+        dateImageRepository.flush();
 
         return new DateImageDeletedResponseList(dateId, dateImageList.stream()
                 .map(dateImage -> dateImage.getId().toString())

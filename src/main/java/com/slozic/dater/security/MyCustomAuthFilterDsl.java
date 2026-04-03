@@ -16,7 +16,7 @@ public class MyCustomAuthFilterDsl extends AbstractHttpConfigurer<MyCustomAuthFi
     private final JWTUtils jwtUtils;
 
     @Override
-    public void init(final HttpSecurity http) throws Exception {
+    public void init(final HttpSecurity http) {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable);

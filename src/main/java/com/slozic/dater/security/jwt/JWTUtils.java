@@ -32,10 +32,10 @@ public class JWTUtils {
     }
 
     private Jws<Claims> parseToken(final String token) {
-        final JwtParser jwtParser = Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+        final JwtParser jwtParser = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secretKey.getBytes()))
                 .build();
-        return jwtParser.parseClaimsJws(token);
+        return jwtParser.parseSignedClaims(token);
     }
 
     private void validateTokenType(final Claims body, final String expectedType) {

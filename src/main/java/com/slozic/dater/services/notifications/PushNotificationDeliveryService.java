@@ -17,8 +17,8 @@ import java.util.Map;
 @Slf4j
 public class PushNotificationDeliveryService {
     private static final String EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+    private static final ObjectMapper PUSH_OBJECT_MAPPER = new ObjectMapper();
 
-    private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
     public void sendPush(
@@ -43,7 +43,7 @@ public class PushNotificationDeliveryService {
                     ),
                     "sound", "default"
             );
-            final String json = objectMapper.writeValueAsString(List.of(payload));
+            final String json = PUSH_OBJECT_MAPPER.writeValueAsString(List.of(payload));
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(EXPO_PUSH_URL))
                     .header("Content-Type", "application/json")

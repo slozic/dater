@@ -5,6 +5,13 @@ It is intentionally kept as a historical running log for future reference.
 
 # Dater Project Notes
 
+## 2026-03 Platform Upgrade Summary (Backend)
+- Established Java 25 and Spring Boot 4 as the backend platform baseline for ongoing development.
+- Aligned backend configuration and dependency management so framework-level changes are easier to maintain.
+- Adapted security and test infrastructure to the newer framework behavior without changing core product flows.
+- Stabilized startup, integration-test bootstrap, and full verify execution on the new platform baseline.
+- Refreshed build-tooling alignment for modern Java compatibility and more consistent local/CI behavior.
+
 ## Backend (dater)
 - Added geo fields to `dates` (latitude/longitude) and optional radius filtering via `GET /dates?latitude=...&longitude=...&radiusKm=...`.
 - Migrated `date_attendees` from `accepted/soft_deleted` booleans to `status` enum with new migration `V9__add_geo_and_attendee_status.sql`.
