@@ -9,6 +9,7 @@ import com.slozic.dater.exceptions.dateevent.DateEventException;
 import com.slozic.dater.exceptions.dateevent.DateEventNotFoundException;
 import com.slozic.dater.exceptions.dateimage.DateImageAccessException;
 import com.slozic.dater.exceptions.dateimage.DateImageException;
+import com.slozic.dater.exceptions.user.UserBlockedException;
 import com.slozic.dater.exceptions.user.UserProfileImageAccessException;
 import com.slozic.dater.exceptions.user.UserNotFoundException;
 import com.slozic.dater.exceptions.user.UserProfileImageException;
@@ -172,6 +173,16 @@ public class ExceptionHandlerAdvice {
                 .body(ErrorResponse.builder()
                         .status(HttpStatus.FORBIDDEN.value())
                         .title("Date event image access forbidden")
+                        .detail(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(UserBlockedException.class)
+    ResponseEntity<ErrorResponse> handleUserBlockedException(final UserBlockedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ErrorResponse.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .title("User interaction blocked")
                         .detail(ex.getMessage())
                         .build());
     }

@@ -8,6 +8,7 @@
 
     <springProfile name="local">
         <logger name="com.slozic.dater" level="INFO" />
+        <logger name="org.flywaydb" level="INFO" />
         <appender name="FILE" class="ch.qos.logback.core.FileAppender">
             <file>logs/app-local.log</file>
             <encoder>

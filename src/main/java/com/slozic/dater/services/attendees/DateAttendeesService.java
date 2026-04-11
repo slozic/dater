@@ -16,6 +16,7 @@ import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.notifications.NotificationService;
+import com.slozic.dater.services.user.UserModerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,16 +36,27 @@ public class DateAttendeesService {
     private final UserRepository userRepository;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
     private final NotificationService notificationService;
+    private final UserModerationService userModerationService;
 
     @Transactional
     public DateAttendeeResponse getAllDateAttendeeRequests(String dateId) {
+        final UUID currentUserId = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         Optional<Date> optionalDate = dateEventRepository.findById(UUID.fromString(dateId));
         if (optionalDate.isEmpty()) {
             throw new DateEventException("Date event not found: " + dateId);
         }
+        if (!optionalDate.get().getCreatedBy().equals(currentUserId)) {
+            throw new DateEventAccessPermissionException("User does not have permission to view attendees for date: " + dateId);
+        }
 
         final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByIdDateId(UUID.fromString(dateId))
-                .stream().filter(dateAttendee -> !dateAttendee.getId().getAttendeeId().equals(optionalDate.get().getCreatedBy())).collect(Collectors.toList());
+                .stream()
+                .filter(dateAttendee -> !dateAttendee.getId().getAttendeeId().equals(optionalDate.get().getCreatedBy()))
+                .filter(dateAttendee -> !userModerationService.areUsersBlocked(
+                        currentUserId,
+                        dateAttendee.getId().getAttendeeId()
+                ))
+                .collect(Collectors.toList());
         return getDateAttendeeResponse(dateId, dateAttendeesList);
     }
 
@@ -67,6 +79,11 @@ public class DateAttendeesService {
     public DateAttendeeStatusResponse addAttendeeToDate(String dateId, UUID currentUserId) {
         final Date date = dateEventRepository.findById(UUID.fromString(dateId)).orElseThrow(() ->
                 new DateEventException("Date event not found: " + dateId));
+        userModerationService.assertUsersNotBlocked(
+                currentUserId,
+                date.getCreatedBy(),
+                "You cannot request this date because one of you has blocked the other user."
+        );
         createNewDateAttendee(dateId, currentUserId);
         notifyDateOwnerAboutNewRequestSafely(date, currentUserId);
         return new DateAttendeeStatusResponse(JoinDateStatus.ON_WAITLIST, currentUserId.toString(), dateId);
@@ -108,6 +125,11 @@ public class DateAttendeesService {
         if (acceptedUserId.equals(date.getCreatedBy())) {
             throw new DateEventException("Date owner cannot be accepted as attendee.");
         }
+        userModerationService.assertUsersNotBlocked(
+                currentUser,
+                acceptedUserId,
+                "You cannot accept this attendee because one of you has blocked the other user."
+        );
         final boolean changedToAccepted = acceptDateAttendee(parsedDateId, acceptedUserId, currentUser);
         if (changedToAccepted) {
             notifyAttendeeAcceptedSafely(acceptedUserId, parsedDateId, date.getTitle());
@@ -167,6 +189,11 @@ public class DateAttendeesService {
         if (attendeeUuid.equals(date.getCreatedBy())) {
             throw new DateEventException("Date owner cannot be rejected as attendee.");
         }
+        userModerationService.assertUsersNotBlocked(
+                currentUser,
+                attendeeUuid,
+                "You cannot reject this attendee because one of you has blocked the other user."
+        );
         rejectAttendee(date.getId(), attendeeUuid);
         return new DateAttendeeStatusResponse(JoinDateStatus.REJECTED, attendeeId, dateId);
     }

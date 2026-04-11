@@ -12,6 +12,24 @@ It is intentionally kept as a historical running log for future reference.
 - Stabilized startup, integration-test bootstrap, and full verify execution on the new platform baseline.
 - Refreshed build-tooling alignment for modern Java compatibility and more consistent local/CI behavior.
 
+## 2026-04 Moderation + migration visibility follow-up (Backend)
+- Added user moderation schema migration `V18__add_user_reports_and_blocks.sql` with:
+  - `user_blocks` (directional blocker/blocked relationship, uniqueness, indexes),
+  - `user_reports` (reason + optional note, indexes).
+- Added moderation domain/API:
+  - `POST /users/{id}/moderation/report`
+  - `POST /users/{id}/moderation/block`
+  - `POST /users/{id}/moderation/report-and-block`
+- Enforced strict block behavior across existing interaction flows:
+  - public profile access,
+  - date visibility/list-detail checks,
+  - attendee request/accept/reject paths,
+  - chat read/send access.
+- Added dedicated blocked-interaction handling with clear `403` error responses.
+- Added integration coverage for moderation and strict-block enforcement (`UserModerationControllerIT`).
+- Fixed startup migration visibility gap by explicitly adding `spring-boot-flyway`; Flyway now runs and logs schema state at backend startup.
+- Switched logging config to `logback-spring.xml` so profile-specific logging (`<springProfile>`) is applied correctly.
+
 ## Backend (dater)
 - Added geo fields to `dates` (latitude/longitude) and optional radius filtering via `GET /dates?latitude=...&longitude=...&radiusKm=...`.
 - Migrated `date_attendees` from `accepted/soft_deleted` booleans to `status` enum with new migration `V9__add_geo_and_attendee_status.sql`.

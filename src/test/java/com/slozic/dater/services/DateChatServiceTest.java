@@ -13,6 +13,7 @@ import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.services.chat.DateChatService;
 import com.slozic.dater.services.notifications.NotificationService;
+import com.slozic.dater.services.user.UserModerationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -47,6 +48,8 @@ class DateChatServiceTest {
     private UserRepository userRepository;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private UserModerationService userModerationService;
 
     @Test
     void sendMessage_shouldRouteOwnerMessageToAcceptedAttendee() {

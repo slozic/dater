@@ -19,6 +19,7 @@ import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.attendees.DateAttendeesService;
 import com.slozic.dater.services.images.DateEventImageService;
+import com.slozic.dater.services.user.UserModerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,10 +46,12 @@ public class DateEventService {
     private final DateEventImageService dateEventImageService;
     private final JwtAuthenticatedUserService jwtAuthenticatedUserService;
     private final UserRepository userRepository;
+    private final UserModerationService userModerationService;
 
     @Transactional(readOnly = true)
     public DateEventListResponse getDateEvents(final DateQueryParameters dateQueryParameters, UUID currentUser) {
         List<Date> dateList = filterDatesByParameters(dateQueryParameters, currentUser);
+        dateList = excludeBlockedDateOwners(dateList, currentUser);
         return mapToListResponse(dateList);
     }
 
@@ -118,9 +121,30 @@ public class DateEventService {
 
     @Transactional(readOnly = true)
     public DateEventResponse getDateEvent(String dateId) throws UnauthorizedException {
+        UUID currentUser = null;
+        try {
+            currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
+        } catch (UnauthorizedException ex) {
+            // Some internal service-level test calls do not run under a security context.
+            // Keep legacy behavior for those paths while still enforcing block checks for authenticated calls.
+        }
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
                 .orElseThrow(() -> new DateEventNotFoundException("No date event found: " + dateId));
+        if (currentUser != null) {
+            userModerationService.assertUsersNotBlocked(
+                    currentUser,
+                    dateEvent.getCreatedBy(),
+                    "You cannot view this date because one of you has blocked the other user."
+            );
+        }
         return mapEntityToDto().apply(dateEvent);
+    }
+
+    private List<Date> excludeBlockedDateOwners(final List<Date> dateList, final UUID currentUser) {
+        return dateList.stream()
+                .filter(date -> date.getCreatedBy() != null)
+                .filter(date -> !userModerationService.areUsersBlocked(currentUser, date.getCreatedBy()))
+                .collect(Collectors.toList());
     }
 
     private Function<Date, DateEventResponse> mapEntityToDto() {

@@ -12,6 +12,7 @@ import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.security.JwtAuthenticatedUserService;
 import com.slozic.dater.services.attendees.DateAttendeesService;
 import com.slozic.dater.services.notifications.NotificationService;
+import com.slozic.dater.services.user.UserModerationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,6 +46,8 @@ public class DateAttendeeServiceTest {
     private JwtAuthenticatedUserService jwtAuthenticatedUserService;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private UserModerationService userModerationService;
 
     @Test
     public void acceptAttendeeRequest_shouldWorkWithSuccess() {

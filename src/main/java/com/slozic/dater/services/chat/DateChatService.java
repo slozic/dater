@@ -12,6 +12,7 @@ import com.slozic.dater.repositories.DateAttendeeRepository;
 import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.repositories.UserRepository;
 import com.slozic.dater.services.notifications.NotificationService;
+import com.slozic.dater.services.user.UserModerationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,17 @@ public class DateChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final UserModerationService userModerationService;
 
     @Transactional(readOnly = true)
     public ChatMessagesResponse getMessagesForDate(final String dateId, final UUID currentUserId) {
         final UUID parsedDateId = UUID.fromString(dateId);
         final ChatParticipants participants = resolveParticipants(parsedDateId);
+        userModerationService.assertUsersNotBlocked(
+                participants.ownerId(),
+                participants.acceptedAttendeeId(),
+                "You cannot access this date chat because one of you has blocked the other user."
+        );
         validateParticipantAccess(currentUserId, participants);
 
         final List<ChatMessageDto> messages = chatMessageRepository.findAllByDateIdAndParticipantUserIdOrderByCreatedAtAsc(
@@ -54,6 +61,11 @@ public class DateChatService {
     ) {
         final UUID parsedDateId = UUID.fromString(dateId);
         final ChatParticipants participants = resolveParticipants(parsedDateId);
+        userModerationService.assertUsersNotBlocked(
+                participants.ownerId(),
+                participants.acceptedAttendeeId(),
+                "You cannot send messages because one of you has blocked the other user."
+        );
         validateParticipantAccess(currentUserId, participants);
         final String message = rawMessage == null ? "" : rawMessage.trim();
         if (message.isEmpty()) {
