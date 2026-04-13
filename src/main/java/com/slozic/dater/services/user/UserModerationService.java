@@ -15,11 +15,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserModerationService {
+    private static final int DUPLICATE_REPORT_COOLDOWN_MINUTES = 15;
+
     private final UserRepository userRepository;
     private final UserBlockRepository userBlockRepository;
     private final UserReportRepository userReportRepository;
@@ -59,6 +65,23 @@ public class UserModerationService {
     }
 
     @Transactional(readOnly = true)
+    public Set<UUID> findBlockedUserIdsForUser(
+            final UUID currentUserId,
+            final Collection<UUID> candidateUserIds
+    ) {
+        if (currentUserId == null || candidateUserIds == null || candidateUserIds.isEmpty()) {
+            return Set.of();
+        }
+        final Set<UUID> filteredCandidateIds = candidateUserIds.stream()
+                .filter(candidateId -> candidateId != null && !candidateId.equals(currentUserId))
+                .collect(LinkedHashSet::new, Set::add, Set::addAll);
+        if (filteredCandidateIds.isEmpty()) {
+            return Set.of();
+        }
+        return userBlockRepository.findBlockedUserIdsForUser(currentUserId, filteredCandidateIds);
+    }
+
+    @Transactional(readOnly = true)
     public void assertUsersNotBlocked(final UUID firstUserId, final UUID secondUserId, final String detailMessage) {
         if (areUsersBlocked(firstUserId, secondUserId)) {
             throw new UserBlockedException(detailMessage);
@@ -88,13 +111,24 @@ public class UserModerationService {
     }
 
     private void createReport(final UUID reporterId, final UUID reportedId, final ReportUserRequest request) {
+        final UserReportReason reason = UserReportReason.fromString(request.reason());
+        final OffsetDateTime duplicateCutoff = OffsetDateTime.now().minusMinutes(DUPLICATE_REPORT_COOLDOWN_MINUTES);
+        final boolean duplicateReportExists = userReportRepository.existsByReporterIdAndReportedIdAndReasonAndCreatedAtAfter(
+                reporterId,
+                reportedId,
+                reason,
+                duplicateCutoff
+        );
+        if (duplicateReportExists) {
+            throw new IllegalArgumentException("You have already reported this user for this reason recently.");
+        }
         final String normalizedNote = request.note() == null || request.note().isBlank()
                 ? null
                 : request.note().trim();
         final UserReport userReport = UserReport.builder()
                 .reporterId(reporterId)
                 .reportedId(reportedId)
-                .reason(UserReportReason.fromString(request.reason()))
+                .reason(reason)
                 .note(normalizedNote)
                 .build();
         userReportRepository.save(userReport);

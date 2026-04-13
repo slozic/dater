@@ -30,6 +30,25 @@ It is intentionally kept as a historical running log for future reference.
 - Fixed startup migration visibility gap by explicitly adding `spring-boot-flyway`; Flyway now runs and logs schema state at backend startup.
 - Switched logging config to `logback-spring.xml` so profile-specific logging (`<springProfile>`) is applied correctly.
 
+## 2026-04-12 Moderation hardening follow-up (Backend)
+- Reduced moderation-check query overhead in list flows:
+  - replaced per-item `areUsersBlocked(...)` checks with a bulk blocked-user lookup helper in `UserModerationService`,
+  - applied in date list owner filtering and attendee request filtering.
+- Removed legacy test-driven fallback in date detail moderation check:
+  - `DateEventService.getDateEvent(...)` now always resolves authenticated user and always enforces strict block checks.
+- Added moderation anti-spam guard:
+  - duplicate report submissions for the same reporter/target/reason are rejected during a short cooldown window.
+- Expanded moderation integration coverage (`UserModerationControllerIT`) with negative paths:
+  - self-moderation rejection,
+  - invalid reason rejection,
+  - missing reason validation,
+  - unknown target user handling,
+  - duplicate recent report rejection.
+- Updated `DateEventControllerIT` delete assertion to avoid direct unauthenticated service access and verify deletion via repository state.
+- Verification:
+  - unit tests: `DateAttendeeServiceTest`, `DateChatServiceTest` -> pass,
+  - integration tests: `UserModerationControllerIT`, `DateEventControllerIT` -> pass.
+
 ## Backend (dater)
 - Added geo fields to `dates` (latitude/longitude) and optional radius filtering via `GET /dates?latitude=...&longitude=...&radiusKm=...`.
 - Migrated `date_attendees` from `accepted/soft_deleted` booleans to `status` enum with new migration `V9__add_geo_and_attendee_status.sql`.

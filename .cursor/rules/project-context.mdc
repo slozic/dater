@@ -31,6 +31,8 @@ alwaysApply: true
 - Core user actions (accept/reject/send message) should not fail solely because notification dispatch fails.
 - Keep logging level production-friendly; avoid temporary debug noise.
 - Flyway migration status should be visible during startup; keep auto-migration wiring and startup logs intact.
+- Avoid per-item moderation block checks in collection flows; use bulk blocked-user lookups for date/attendee list filtering.
+- Keep moderation report anti-spam guard active to reject repeated same-reason reports in a short cooldown window.
 
 ## Coordination with mobile
 - Any backend contract changes must be mirrored in `dater-mobile/lib/api.ts` types and call paths.

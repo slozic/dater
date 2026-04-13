@@ -121,29 +121,30 @@ public class DateEventService {
 
     @Transactional(readOnly = true)
     public DateEventResponse getDateEvent(String dateId) throws UnauthorizedException {
-        UUID currentUser = null;
-        try {
-            currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
-        } catch (UnauthorizedException ex) {
-            // Some internal service-level test calls do not run under a security context.
-            // Keep legacy behavior for those paths while still enforcing block checks for authenticated calls.
-        }
+        final UUID currentUser = jwtAuthenticatedUserService.getCurrentUserOrThrow();
         final Date dateEvent = dateEventRepository.findById(UUID.fromString(dateId))
                 .orElseThrow(() -> new DateEventNotFoundException("No date event found: " + dateId));
-        if (currentUser != null) {
-            userModerationService.assertUsersNotBlocked(
-                    currentUser,
-                    dateEvent.getCreatedBy(),
-                    "You cannot view this date because one of you has blocked the other user."
-            );
-        }
+        userModerationService.assertUsersNotBlocked(
+                currentUser,
+                dateEvent.getCreatedBy(),
+                "You cannot view this date because one of you has blocked the other user."
+        );
         return mapEntityToDto().apply(dateEvent);
     }
 
     private List<Date> excludeBlockedDateOwners(final List<Date> dateList, final UUID currentUser) {
+        if (currentUser == null || dateList.isEmpty()) {
+            return dateList;
+        }
+        final List<UUID> ownerIds = dateList.stream()
+                .map(Date::getCreatedBy)
+                .filter(ownerId -> ownerId != null && !ownerId.equals(currentUser))
+                .distinct()
+                .collect(Collectors.toList());
+        final var blockedOwnerIds = userModerationService.findBlockedUserIdsForUser(currentUser, ownerIds);
         return dateList.stream()
                 .filter(date -> date.getCreatedBy() != null)
-                .filter(date -> !userModerationService.areUsersBlocked(currentUser, date.getCreatedBy()))
+                .filter(date -> !blockedOwnerIds.contains(date.getCreatedBy()))
                 .collect(Collectors.toList());
     }
 

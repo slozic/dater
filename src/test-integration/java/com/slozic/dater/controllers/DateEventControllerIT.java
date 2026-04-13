@@ -8,12 +8,11 @@ import com.slozic.dater.dto.response.images.DateImageMetaData;
 import com.slozic.dater.exceptions.dateevent.DateEventAccessPermissionException;
 import com.slozic.dater.exceptions.dateevent.DateEventNotFoundException;
 import com.slozic.dater.repositories.DateAttendeeRepository;
+import com.slozic.dater.repositories.DateEventRepository;
 import com.slozic.dater.services.images.DateEventImageService;
-import com.slozic.dater.services.dateevent.DateEventService;
 import com.slozic.dater.testconfig.IntegrationTest;
 import com.slozic.dater.testconfig.JwsBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -38,11 +37,11 @@ public class DateEventControllerIT extends IntegrationTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private DateEventService dateEventService;
-    @Autowired
     private DateEventImageService dateEventImageService;
     @Autowired
     private DateAttendeeRepository dateAttendeeRepository;
+    @Autowired
+    private DateEventRepository dateEventRepository;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -225,7 +224,7 @@ public class DateEventControllerIT extends IntegrationTest {
                 .andReturn();
 
         // then
-        Assertions.assertThrows(DateEventNotFoundException.class, () -> dateEventService.getDateEvent(dateId));
+        assertThat(dateEventRepository.findById(UUID.fromString(dateId))).isEmpty();
         assertThat(dateAttendeeRepository.findAllByIdDateId(UUID.fromString(dateId))).isEmpty();
         assertThat(dateEventImageService.getDateEventImageMetaData(dateId)).isEmpty();
         imageMetaDataList.forEach(dateImageMetaData -> assertThat(new File(dateImageMetaData.path()).exists()).isFalse());

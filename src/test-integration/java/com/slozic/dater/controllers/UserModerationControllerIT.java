@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -117,5 +119,102 @@ public class UserModerationControllerIT extends IntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
         assertThat(chatResult.getResponse().getStatus()).isEqualTo(403);
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadUsers.sql"})
+    void blockUser_shouldRejectSelfModeration() throws Exception {
+        final String userId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        final String token = jwsBuilder.getJwt(userId);
+
+        final var result = mockMvc.perform(
+                        post("/users/{id}/moderation/block", userId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(400);
+        assertThat(result.getResponse().getContentAsString()).contains("You cannot moderate your own user.");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadUsers.sql"})
+    void reportUser_shouldRejectUnsupportedReason() throws Exception {
+        final String reporterId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        final String reportedId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        final String token = jwsBuilder.getJwt(reporterId);
+
+        final var result = mockMvc.perform(
+                        post("/users/{id}/moderation/report", reportedId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"FAKE_REASON\"}"))
+                .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(400);
+        assertThat(result.getResponse().getContentAsString()).contains("Unsupported report reason");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadUsers.sql"})
+    void reportUser_shouldRejectMissingReason() throws Exception {
+        final String reporterId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        final String reportedId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        final String token = jwsBuilder.getJwt(reporterId);
+
+        final var result = mockMvc.perform(
+                        post("/users/{id}/moderation/report", reportedId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"\"}"))
+                .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(400);
+        assertThat(result.getResponse().getContentAsString()).contains("reason must not be blank");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadUsers.sql"})
+    void reportUser_shouldRejectUnknownTargetUser() throws Exception {
+        final String reporterId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        final String unknownUserId = UUID.randomUUID().toString();
+        final String token = jwsBuilder.getJwt(reporterId);
+
+        final var result = mockMvc.perform(
+                        post("/users/{id}/moderation/report", unknownUserId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"SPAM\"}"))
+                .andReturn();
+
+        assertThat(result.getResponse().getStatus()).isEqualTo(404);
+        assertThat(result.getResponse().getContentAsString()).contains("User with id not found");
+    }
+
+    @Test
+    @Sql(scripts = {"classpath:fixtures/resetDB.sql", "classpath:fixtures/loadUsers.sql"})
+    void reportUser_shouldRejectDuplicateRecentReportsForSameReason() throws Exception {
+        final String reporterId = "aae884f1-e3bc-4c48-8ebb-adb6f6dfc5d5";
+        final String reportedId = "6c49abd4-0e82-47f6-bb0c-558c9a890bd4";
+        final String token = jwsBuilder.getJwt(reporterId);
+
+        final var firstResult = mockMvc.perform(
+                        post("/users/{id}/moderation/report", reportedId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"SPAM\",\"note\":\"Spam links\"}"))
+                .andReturn();
+
+        final var secondResult = mockMvc.perform(
+                        post("/users/{id}/moderation/report", reportedId)
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"reason\":\"SPAM\",\"note\":\"Spam links again\"}"))
+                .andReturn();
+
+        assertThat(firstResult.getResponse().getStatus()).isEqualTo(200);
+        assertThat(secondResult.getResponse().getStatus()).isEqualTo(400);
+        assertThat(secondResult.getResponse().getContentAsString())
+                .contains("already reported this user for this reason recently");
     }
 }

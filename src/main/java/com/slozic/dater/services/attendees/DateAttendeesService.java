@@ -48,14 +48,18 @@ public class DateAttendeesService {
         if (!optionalDate.get().getCreatedBy().equals(currentUserId)) {
             throw new DateEventAccessPermissionException("User does not have permission to view attendees for date: " + dateId);
         }
-
-        final List<DateAttendee> dateAttendeesList = dateAttendeeRepository.findAllByIdDateId(UUID.fromString(dateId))
+        final List<DateAttendee> dateAttendees = dateAttendeeRepository.findAllByIdDateId(UUID.fromString(dateId))
                 .stream()
                 .filter(dateAttendee -> !dateAttendee.getId().getAttendeeId().equals(optionalDate.get().getCreatedBy()))
-                .filter(dateAttendee -> !userModerationService.areUsersBlocked(
-                        currentUserId,
-                        dateAttendee.getId().getAttendeeId()
-                ))
+                .collect(Collectors.toList());
+        final List<UUID> attendeeIds = dateAttendees.stream()
+                .map(dateAttendee -> dateAttendee.getId().getAttendeeId())
+                .collect(Collectors.toList());
+        final var blockedAttendeeIds = userModerationService.findBlockedUserIdsForUser(currentUserId, attendeeIds);
+
+        final List<DateAttendee> dateAttendeesList = dateAttendees
+                .stream()
+                .filter(dateAttendee -> !blockedAttendeeIds.contains(dateAttendee.getId().getAttendeeId()))
                 .collect(Collectors.toList());
         return getDateAttendeeResponse(dateId, dateAttendeesList);
     }
